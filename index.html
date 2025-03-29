@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORNELIUS AND ASSOCIATES</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            color: white;
+            animation: fadeBackground 6s infinite alternate; /* Fade animation for the background */
+        }
+
+        header {
+            text-align: center;
+            padding: 50px;
+            font-size: 8vw; /* Make text size responsive with viewport width */
+            font-weight: bold;
+            margin-bottom: 50px;
+            letter-spacing: 5px; /* Space between letters for better 3D effect */
+            text-transform: uppercase; /* Make text uppercase for better effect */
+            color: transparent;
+            background-image: linear-gradient(to right, purple, red); /* Gradient from purple to red */
+            -webkit-background-clip: text; /* Clip the background gradient to the text */
+            background-clip: text;
+            text-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.5), /* Shadow for depth */
+                3px 3px 6px rgba(0, 0, 0, 0.3), 
+                4px 4px 8px rgba(0, 0, 0, 0.2),
+                5px 5px 10px rgba(0, 0, 0, 0.1); /* Adding multiple shadows for a more intense 3D effect */
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 20px;
+            height: calc(100vh - 200px); /* Adjusted height to leave space at the bottom */
+            text-align: center;
+            overflow: auto; /* Ensures scroll if content overflows */
+        }
+
+        /* General section styling */
+        .section {
+            margin: 30px;
+            padding: 30px;
+            background-color: rgba(255, 255, 0, 0.2); /* Light yellow background */
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideIn 1s forwards;
+        }
+
+        .section h2 {
+            color: yellow; /* Yellow color for headings */
+            font-size: 1.8em;
+        }
+
+        .section p {
+            color: yellow; /* Yellow color for text */
+            font-size: 1.2em;
+        }
+
+        .services {
+            margin: 20px;
+            padding: 30px;
+            background-color: rgba(128, 0, 128, 0.2); /* Light purple background */
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideIn 1s forwards;
+            animation-delay: 2s; /* Delay the Services section */
+        }
+
+        .services h2 {
+            color: purple; /* Purple color for services heading */
+            font-size: 1.8em;
+        }
+
+        .services ul {
+            color: purple; /* Purple color for list items */
+            font-size: 1.2em;
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .services ul li {
+            margin: 10px 0;
+        }
+
+        .contact {
+            margin: 40px;
+            padding: 30px;
+            background-color: rgba(0, 128, 0, 0.2); /* Light green background */
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideIn 1s forwards;
+            animation-delay: 4s; /* Delay the Contact section */
+        }
+
+        .contact h2 {
+            color: green; /* Green color for contact heading */
+            font-size: 1.8em;
+        }
+
+        .contact p {
+            color: green; /* Green color for text */
+            font-size: 1.2em;
+        }
+
+        .contact a {
+            color: #25D366; /* WhatsApp green color */
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        @keyframes slideIn {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Stagger the appearance of each section */
+        .section:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .section:nth-child(2) {
+            animation-delay: 1s;
+        }
+
+        .section:nth-child(3) {
+            animation-delay: 2s;
+        }
+
+        .services {
+            animation-delay: 3s;
+        }
+
+        .contact {
+            animation-delay: 4s;
+        }
+
+        /* Background fade animation */
+        @keyframes fadeBackground {
+            0% {
+                background: linear-gradient(to right, purple, red, blue, green);
+            }
+            50% {
+                background: linear-gradient(to right, yellow, orange, red, pink);
+            }
+            100% {
+                background: linear-gradient(to right, purple, red, blue, green);
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        CORNELIUS AND ASSOCIATES
+    </header>
+    <div class="content">
+        <!-- Vision Section -->
+        <div class="section">
+            <h2>Vision</h2>
+            <p>Our vision is to be a globally recognized leader in innovative solutions, empowering businesses and communities to thrive in a constantly evolving world.</p>
+        </div>
+        <!-- Vision Section - Second Part -->
+        <div class="section">
+            <h2>Vision</h2>
+            <p>We strive to create sustainable impact through groundbreaking technologies that drive progress, foster growth, and improve quality of life for all.</p>
+        </div>
+        <!-- Mission Section -->
+        <div class="section">
+            <h2>Mission</h2>
+            <p>Our mission is to deliver exceptional consulting and services that drive growth, efficiency, and sustainability for our clients, using cutting-edge technologies and insights.</p>
+        </div>
+        <!-- Motto Section -->
+        <div class="section">
+            <h2>Motto</h2>
+            <p>"Innovating Today, Leading Tomorrow."</p>
+        </div>
+        <!-- Services Section -->
+        <div class="services">
+            <h2>Our Services</h2>
+            <ul>
+                <li>Website Development</li>
+                <li>Logo Design</li>
+                <li>Computer Packages Training</li>
+            </ul>
+        </div>
+        <!-- Contact Customer Service Section -->
+        <div class="contact">
+            <h2>Contact Customer Service</h2>
+            <p><strong>Phone Number:</strong> 0794168082</p>
+            <p><strong>Email:</strong> <a href="mailto:wekesacornelius2030@gmail.com">wekesacornelius2030@gmail.com</a></p>
+            <p><strong>WhatsApp:</strong> <a href="https://wa.me/254794168082" target="_blank">Click to chat on WhatsApp</a></p>
+        </div>
+    </div>
+</body>
+</html>
