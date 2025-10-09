@@ -1,0 +1,1225 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Factory Management System</title>
+
+  <!-- FontAwesome for icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --nav-blue:#0b63c7;
+      --nav-blue-dark:#084ea0;
+      --white:#ffffff;
+      --bg-default:#eaf6ff;
+      --card:#fff;
+      --muted:#6b7280;
+      --chocolate:#7b3f00;
+      --chocolate-contrast:#fff6ec;
+      --chocolate-green:#2b8a3e;
+      --notif-bg:#dff4ff;
+      --notif-text:#6b8f01;
+      --pink-block: #ffb6c1;
+      --green-yellow: #9aae1a;
+    }
+
+    *{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    html,body{height:100%;margin:0;background:var(--bg-default);-webkit-font-smoothing:antialiased;}
+    button{cursor:pointer;font-weight:700;border-radius:8px;padding:8px 12px;border:0;background:var(--nav-blue);color:var(--white);}
+
+    /* App layout */
+    .app{display:flex;min-height:100vh;gap:0;}
+    /* side nav */
+    .sidebar{
+      width:300px; min-width:72px;
+      background:linear-gradient(180deg,var(--nav-blue),var(--nav-blue-dark));
+      color:var(--white); padding:18px; display:flex;flex-direction:column; gap:12px;
+      transition: width .18s ease;
+    }
+    .sidebar.collapsed{ width:72px; }
+    .brand{display:flex;gap:12px;align-items:center;}
+    .brand .logo{width:56px;height:56px;border-radius:10px;background:var(--white);display:flex;align-items:center;justify-content:center;color:var(--nav-blue);font-weight:900;font-size:20px;overflow:hidden;}
+    .brand .title{font-weight:900;font-size:18px;line-height:1;}
+    .navmenu{display:flex;flex-direction:column;gap:8px;margin-top:8px;overflow:auto;padding-right:6px;}
+    .navbtn{display:flex;gap:12px;align-items:center;padding:10px;border-radius:10px;background:transparent;border:0;color:var(--white);text-align:left;font-weight:800;font-size:14px;}
+    .navbtn:hover{background:rgba(255,255,255,0.06);transform:translateX(6px);transition:all .12s ease;}
+    .iconbox{width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--white);}
+    .sidebar .footer{margin-top:auto;font-size:12px;opacity:.9;}
+
+    /* main */
+    .main{flex:1;padding:20px;overflow:auto;min-height:100vh;}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;}
+    .company-logo{width:160px;height:64px;border-radius:10px;background:linear-gradient(180deg,#fff,#f5fbff);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .company-logo img{width:100%;height:100%;object-fit:contain;}
+    .controls{display:flex;gap:8px;align-items:center;}
+
+    /* Cards */
+    .card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 6px 20px rgba(2,6,23,.04);}
+
+    /* Dashboard image (double height) */
+    .dashboard-wrap{width:100%;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f6fcff;}
+    .dashboard-wrap img{width:100%;height:760px;object-fit:cover;display:block;}
+
+    /* forms */
+    .form-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;}
+    .form-group{flex:1;min-width:160px;display:flex;flex-direction:column;gap:6px;}
+    input[type="text"],input[type="password"],input[type="email"],select,textarea,input[type="number"],input[type="date"]{padding:10px 12px;border-radius:8px;border:1px solid rgba(11,79,193,0.08);background:#fbfdff;font-size:14px;}
+    .btn-ghost{background:transparent;border:1px solid rgba(11,79,193,0.12);color:var(--nav-blue);font-weight:800;padding:8px 12px;border-radius:8px;}
+    .muted{color:var(--muted);font-size:13px;}
+
+    /* chocolate form style */
+    .choc-card{background:var(--chocolate);color:var(--chocolate-contrast);padding:16px;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.08);}
+    .choc-card label{color:var(--chocolate-green);font-weight:800;margin-bottom:6px;}
+    .choc-card input, .choc-card select{padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:var(--chocolate-contrast);}
+
+    /* notify */
+    #notification{position:fixed;top:18px;right:18px;z-index:9999;display:none;padding:12px 16px;border-radius:10px;background:var(--notif-bg);color:var(--notif-text);font-weight:800;border-left:6px solid rgba(154,174,26,0.18);box-shadow:0 10px 30px rgba(2,6,23,0.12);}
+
+    /* tables */
+    table{width:100%;border-collapse:collapse;margin-top:12px;}
+    th,td{padding:10px;border-bottom:1px solid #f0f7ff;text-align:left;}
+    th{color:var(--muted);font-weight:800;font-size:13px;}
+
+    /* inbox */
+    .inbox-list{max-height:280px;overflow:auto;}
+
+    /* responsive */
+    @media (max-width:1000px){
+      .sidebar{position:fixed;left:0;top:0;height:100vh;z-index:1200;transform:translateX(-115%);transition:transform .18s ease;}
+      .sidebar.open{transform:translateX(0%);}
+      .main{padding:14px;}
+      .dashboard-wrap img{height:360px;}
+    }
+    @media (max-width:600px){
+      .dashboard-wrap img{height:260px;}
+      .company-logo{width:110px;height:44px;}
+    }
+
+    /* extra small UI */
+    .small-profile{display:flex;gap:8px;align-items:center;}
+    .small-profile img{width:44px;height:44px;border-radius:8px;object-fit:cover;}
+    .pending-badge{background:var(--pink-block);color:#222;padding:2px 8px;border-radius:12px;font-weight:800;margin-left:8px;}
+    .chocolate-label{display:block;font-weight:900;color:var(--chocolate-green);margin-bottom:6px;}
+    .menu-toggle{background:transparent;border:0;color:var(--white);font-size:18px;padding:8px;border-radius:8px}
+  </style>
+</head>
+<body>
+
+  <div id="notification" role="status" aria-live="polite"></div>
+
+  <div class="app" id="app">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="brand">
+          <div class="logo" id="navLogo">F</div>
+          <div style="display:flex;flex-direction:column;">
+            <div class="title" id="navTitle">Industry MS</div>
+            <div style="font-size:12px;opacity:.9">industry Management</div>
+          </div>
+        </div>
+        <div>
+          <button class="menu-toggle" id="sidebarToggle" title="Toggle menu"><i class="fas fa-bars"></i></button>
+        </div>
+      </div>
+
+      <div class="navmenu" id="navMenu">
+        <button class="navbtn" data-page="dashboard" onclick="navigate('dashboard')"><span class="iconbox"><i class="fas fa-home"></i></span><span>Dashboard</span></button>
+        <button class="navbtn" data-page="raw" onclick="navigate('raw')"><span class="iconbox"><i class="fas fa-boxes"></i></span><span>Raw Materials</span></button>
+        <button class="navbtn" data-page="prod" onclick="navigate('prod')"><span class="iconbox"><i class="fas fa-file-invoice"></i></span><span>Production Orders</span></button>
+        <button class="navbtn" data-page="man" onclick="navigate('man')"><span class="iconbox"><i class="fas fa-industry"></i></span><span>Manufacturing</span></button>
+        <button class="navbtn" data-page="fin" onclick="navigate('fin')"><span class="iconbox"><i class="fas fa-gift"></i></span><span>Finished Goods</span></button>
+        <button class="navbtn" data-page="sales" onclick="navigate('sales')"><span class="iconbox"><i class="fas fa-receipt"></i></span><span>Sales Orders</span></button>
+        <button class="navbtn" data-page="dispatch" onclick="navigate('dispatch')"><span class="iconbox"><i class="fas fa-truck"></i></span><span>Dispatch</span></button>
+        <button class="navbtn" data-page="reports" onclick="navigate('reports')"><span class="iconbox"><i class="fas fa-chart-line"></i></span><span>Reports</span></button>
+        <button class="navbtn" data-page="inbox" onclick="navigate('inbox')"><span class="iconbox"><i class="fas fa-inbox"></i></span><span>Inbox <span id="msgCount" style="margin-left:8px;font-weight:900"></span></span></button>
+        <div style="height:1px;background:rgba(255,255,255,0.08);margin:8px 0;border-radius:4px"></div>
+        <div id="adminControlsContainer"></div>
+        <div style="height:1px;background:rgba(255,255,255,0.06);margin:8px 0;border-radius:4px"></div>
+        <button class="navbtn" onclick="navigate('profile')"><span class="iconbox"><i class="fas fa-user"></i></span><span>Profile & Settings</span></button>
+        <button class="navbtn" onclick="logout()"><span class="iconbox"><i class="fas fa-sign-out-alt"></i></span><span>Logout</span></button>
+      </div>
+
+      <div class="footer" style="margin-top:auto;">
+        <div style="font-size:12px">Cornelius and associates softwares</div>
+        <div style="font-size:12px;opacity:.9">©2025</div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main" id="main">
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="btn btn-ghost" id="hamburger" title="open menu" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+          <div class="company-logo" id="companyLogo"><div style="font-weight:800;color:var(--nav-blue)">Your Logo</div></div>
+          <div>
+            <div id="welcomeTitle" style="font-weight:800;font-size:18px">Industry Management System</div>
+            <div class="muted" id="welcomeSub">Please login or sign up</div>
+          </div>
+        </div>
+
+        <div class="controls" id="topControls">
+          <div id="authButtons">
+            <button class="btn" onclick="openLogin()">Login</button>
+            <button class="btn btn-ghost" onclick="openSignup()">Sign up</button>
+          </div>
+          <div id="userControls" style="display:none;align-items:center;">
+            <div id="smallProfile" class="small-profile"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="content" style="margin-top:18px">
+        <!-- Landing -->
+        <div id="landing" class="card">
+          <h2 style="margin:0">Welcome to FactoryMS</h2>
+          <div class="muted" style="margin-top:6px">Admin logs in directly. Users sign up and wait for approval (Admin approves/rejects). Admin can upload background, dashboard image and business logo, visible to everyone.</div>
+
+          <div style="margin-top:18px" class="dashboard-wrap card">
+            <div class="muted">Admin-uploaded dashboard image will appear here (double height). Use Admin controls to upload images.</div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- LOGIN MODAL -->
+  <div id="loginModal" style="display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(4,6,12,0.45);align-items:center;justify-content:center;z-index:9999;">
+    <div style="width:520px;" class="card">
+      <h3 style="margin:0 0 8px 0">Login</h3>
+      <div class="form-row">
+        <div class="form-group"><label>Username</label><input id="loginUsername" type="text" placeholder="username"></div>
+        <div class="form-group"><label>Password</label><input id="loginPassword" type="password" placeholder="password"></div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        <button class="btn btn-ghost" onclick="closeLogin()">Cancel</button>
+        <button class="btn" onclick="login()">Login</button>
+      </div>
+      <div class="muted" style="margin-top:10px">Don't have an account? <a href="#" onclick="closeLogin(); openSignup()">Sign up</a></div>
+    </div>
+  </div>
+
+  <!-- SIGNUP MODAL -->
+  <div id="signupModal" style="display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(4,6,12,0.45);align-items:center;justify-content:center;z-index:9999;">
+    <div style="width:720px;" class="card">
+      <h3 style="margin:0 0 8px 0">Sign up (request access)</h3>
+
+      <div class="choc-card">
+        <div class="form-row">
+          <div class="form-group"><label class="chocolate-label">Full Name</label><input id="suFull" type="text" /></div>
+          <div class="form-group"><label class="chocolate-label">Email</label><input id="suEmail" type="email" /></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="chocolate-label">Username</label><input id="suUser" type="text" /></div>
+          <div class="form-group"><label class="chocolate-label">Password</label><input id="suPass" type="password" /></div>
+          <div class="form-group"><label class="chocolate-label">Role / Position</label>
+            <select id="suRole">
+              <option>CEO</option>
+              <option>Manager</option>
+              <option>Sales Officer</option>
+              <option>Driver</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+          <button class="btn btn-ghost" onclick="closeSignup()">Cancel</button>
+          <button class="btn" onclick="signup()">Submit request</button>
+        </div>
+        <div class="muted" style="margin-top:10px">Admin logs in directly. New users will appear in pending requests for approval.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN ADD USER (chocolate professional form) -->
+  <div id="adminAddModal" style="display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(4,6,12,0.45);align-items:center;justify-content:center;z-index:9999;">
+    <div style="width:560px;" class="choc-card">
+      <h3 style="margin:0 0 8px 0;color:var(--chocolate-green)">Add User (Admin)</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="chocolate-label">Full Name</label>
+          <input id="admFull" type="text" />
+        </div>
+        <div class="form-group">
+          <label class="chocolate-label">Email</label>
+          <input id="admEmail" type="email" />
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:8px">
+        <div class="form-group">
+          <label class="chocolate-label">Username</label>
+          <input id="admUser" type="text" />
+        </div>
+        <div class="form-group">
+          <label class="chocolate-label">Password</label>
+          <input id="admPass" type="password" />
+        </div>
+        <div class="form-group">
+          <label class="chocolate-label">Role</label>
+          <select id="admRole">
+            <option>CEO</option>
+            <option>Manager</option>
+            <option>Sales Officer</option>
+            <option>Driver</option>
+            <option>Admin</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+        <button class="btn btn-ghost" onclick="closeAdminAdd()">Cancel</button>
+        <button class="btn" onclick="adminAddUser()">Add User</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HIDDEN FILE INPUTS -->
+  <input type="file" id="uploadLogo" accept="image/*" style="display:none" />
+  <input type="file" id="uploadBg" accept="image/*" style="display:none" />
+  <input type="file" id="uploadDash" accept="image/*" style="display:none" />
+  <input type="file" id="profilePicInput" accept="image/*" style="display:none" />
+
+  <script>
+    /***************************************************************
+     * Single-file Factory Management System (front-end only, localStorage)
+     * - Role-based dashboards
+     * - Admin direct credentials (admn17550 / admin17550)
+     * - Signup creates pending requests; Admin approves/rejects
+     * - Admin uploads: logo/background/dashboard (stored in localStorage)
+     * - Messaging inbox between users
+     * - CRUD for Admin & Manager: Raw Materials, Production Orders, Finished Goods, Sales, Dispatch
+     * - Reports with filters, Print & CSV
+     * - Demo data on first run only, Reset button available for Admin
+     ***************************************************************/
+
+    // Storage keys
+    const K = {
+      USERS: 'fms_users_v1',
+      PENDING: 'fms_pending_v1',
+      CURRENT: 'fms_current_v1',
+      RAW: 'fms_raw_v1',
+      PROD: 'fms_prod_v1',
+      MAN: 'fms_man_v1',
+      FIN: 'fms_fin_v1',
+      SALES: 'fms_sales_v1',
+      DISP: 'fms_disp_v1',
+      MSG: 'fms_msg_v1',
+      META: 'fms_meta_v1',
+      INIT: 'fms_init_v1'
+    };
+
+    // Helpers
+    function save(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+    function load(k){ const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; }
+    function uid(p='id'){ return p + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+    const notifEl = document.getElementById('notification');
+    function notify(msg, t=2800){
+      notifEl.innerText = msg; notifEl.style.display = 'block';
+      setTimeout(()=>{ notifEl.style.display = 'none'; }, t);
+    }
+
+    // Seed demo on first run
+    (function seed(){
+      if(load(K.INIT)) return;
+      const admin = { id: uid('u'), fullName:'System Admin', email:'admin@medati.com', username:'admn17550', password:'admin17550', role:'Admin', active:true, profilePic:null, createdAt:Date.now() };
+
+      const pending = [
+        { id: uid('p'), fullName:'Alice CEO', email:'alice@demo.com', username:'alice', password:'alice123', role:'CEO', requestedAt: Date.now()-3600000 },
+        { id: uid('p'), fullName:'Mark Manager', email:'mark@demo.com', username:'markm', password:'mark123', role:'Manager', requestedAt: Date.now()-3500000 },
+        { id: uid('p'), fullName:'Sally Sales', email:'sally@demo.com', username:'sallys', password:'sally123', role:'Sales Officer', requestedAt: Date.now()-3400000 },
+        { id: uid('p'), fullName:'Dan Driver', email:'dan@demo.com', username:'dand', password:'dan123', role:'Driver', requestedAt: Date.now()-3300000 }
+      ];
+
+      const raws = [
+        { id: uid('r'), name:'Steel Rods', unit:'kg', qty:500, createdAt: Date.now()-86400000 },
+        { id: uid('r'), name:'Plastic Pellets', unit:'kg', qty:300, createdAt: Date.now()-86400000 },
+        { id: uid('r'), name:'Wood Planks', unit:'pcs', qty:200, createdAt: Date.now()-86400000 }
+      ];
+
+      const prods = [
+        { id: uid('p'), code:'PO-001', product:'Chair', qty:120, status:'Pending', createdAt: Date.now()-7200000 },
+        { id: uid('p'), code:'PO-002', product:'Table', qty:40, status:'Pending', createdAt: Date.now()-3600000 }
+      ];
+
+      const fins = [
+        { id: uid('f'), product:'Chair', qty:40, createdAt: Date.now()-3600000 },
+        { id: uid('f'), product:'Table', qty:10, createdAt: Date.now()-3600000 }
+      ];
+
+      const sales = [
+        { id: uid('s'), customer:'XYZ Ltd', productId: fins[0].id, productName:'Chair', qty:20, status:'Pending', createdAt: Date.now()-1800000 }
+      ];
+
+      const msgs = [
+        { id: uid('m'), from:'system', to:'markm', content:'Welcome Mark — please wait for admin approval.', ts: Date.now()-200000 },
+        { id: uid('m'), from:'alice', to:'markm', content:'Hi Mark, once approved let us sync on production.', ts: Date.now()-120000 }
+      ];
+
+      const meta = { logo:null, background:null, dashboard:null };
+
+      save(K.USERS, [admin]);
+      save(K.PENDING, pending);
+      save(K.RAW, raws);
+      save(K.PROD, prods);
+      save(K.FIN, fins);
+      save(K.SALES, sales);
+      save(K.DISP, []);
+      save(K.MSG, msgs);
+      save(K.MAN, []);
+      save(K.META, meta);
+      save(K.INIT, true);
+    })();
+
+    // UI controls
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    sidebarToggle.addEventListener('click', ()=>{ sidebar.classList.toggle('collapsed'); });
+
+    function toggleSidebar(){
+      if(window.innerWidth < 1000) sidebar.classList.toggle('open'); else sidebar.classList.toggle('collapsed');
+    }
+
+    // Show modals
+    function openLogin(){ document.getElementById('loginModal').style.display='flex'; }
+    function closeLogin(){ document.getElementById('loginModal').style.display='none'; document.getElementById('loginUsername').value=''; document.getElementById('loginPassword').value=''; }
+    function openSignup(){ document.getElementById('signupModal').style.display='flex'; }
+    function closeSignup(){ document.getElementById('signupModal').style.display='none'; document.getElementById('suFull').value=''; document.getElementById('suEmail').value=''; document.getElementById('suUser').value=''; document.getElementById('suPass').value=''; }
+    function openAdminAdd(){ document.getElementById('adminAddModal').style.display='flex'; }
+    function closeAdminAdd(){ document.getElementById('adminAddModal').style.display='none'; document.getElementById('admFull').value=''; document.getElementById('admEmail').value=''; document.getElementById('admUser').value=''; document.getElementById('admPass').value=''; }
+
+    // Auth: signup/login/logout
+    function signup(){
+      const full = document.getElementById('suFull').value.trim();
+      const email = document.getElementById('suEmail').value.trim();
+      const username = document.getElementById('suUser').value.trim();
+      const pass = document.getElementById('suPass').value;
+      const role = document.getElementById('suRole').value;
+      if(!full || !email || !username || !pass || !role){ notify('Complete all fields'); return; }
+      if(username.toLowerCase() === 'admn17550'){ notify('That username is reserved for admin.'); return; }
+
+      const users = load(K.USERS) || [];
+      const pending = load(K.PENDING) || [];
+      if((users.some(u=>u.username===username)) || (pending.some(p=>p.username===username))){ notify('Username already exists'); return; }
+
+      pending.push({ id: uid('p'), fullName:full, email, username, password:pass, role, requestedAt: Date.now() });
+      save(K.PENDING, pending);
+      closeSignup();
+      notify('Sign-up submitted. Pending admin approval.');
+      renderPendingBadge();
+    }
+
+    function login(){
+      const username = document.getElementById('loginUsername').value.trim();
+      const pass = document.getElementById('loginPassword').value;
+      if(!username || !pass){ notify('Enter username and password'); return; }
+
+      const users = load(K.USERS) || [];
+      const user = users.find(u => u.username === username && u.password === pass);
+      if(!user){ notify('Invalid credentials or not approved'); return; }
+      if(!user.active){ notify('Account not active. Wait for admin approval.'); return; }
+
+      save(K.CURRENT, user);
+      closeLogin();
+      onLoggedIn();
+      notify(`Logged in as ${user.username} (${user.role})`);
+    }
+
+    function logout(){
+      localStorage.removeItem(K.CURRENT);
+      location.reload();
+    }
+
+    // utilities
+    function current(){ return load(K.CURRENT); }
+    function isEditable(){ const cur = current(); return cur && (cur.role === 'Admin' || cur.role === 'Manager'); }
+
+    // render pending badge and admin controls
+    function renderPendingBadge(){
+      const pending = load(K.PENDING) || [];
+      const el = document.getElementById('navMenu').querySelector('#pendingCount');
+      // place pending count next to Inbox or Pending - we'll instead put inside admin controls
+    }
+
+    function renderAdminControls(){
+      const container = document.getElementById('adminControlsContainer');
+      const cur = current();
+      if(!cur || cur.role !== 'Admin'){ container.innerHTML = ''; return; }
+      container.innerHTML = `
+        <button class="navbtn" onclick="navigate('pending')"><span class="iconbox"><i class="fas fa-user-check"></i></span><span>Pending</span></button>
+        <button class="navbtn" onclick="navigate('adminUsers')"><span class="iconbox"><i class="fas fa-users-cog"></i></span><span>Manage Users</span></button>
+        <button class="navbtn" onclick="openAdminAdd()"><span class="iconbox"><i class="fas fa-user-plus"></i></span><span>Add User</span></button>
+        <button class="navbtn" onclick="triggerUpload('logo')"><span class="iconbox"><i class="fas fa-image"></i></span><span>Upload Logo</span></button>
+        <button class="navbtn" onclick="triggerUpload('background')"><span class="iconbox"><i class="fas fa-fill"></i></span><span>Upload Background</span></button>
+        <button class="navbtn" onclick="triggerUpload('dashboard')"><span class="iconbox"><i class="fas fa-layer-group"></i></span><span>Upload Dashboard</span></button>
+      `;
+    }
+
+    function renderMetaAssets(){
+      const meta = load(K.META) || { logo:null, background:null, dashboard:null };
+      const logoBox = document.getElementById('companyLogo');
+      const navLogo = document.getElementById('navLogo');
+      if(meta.logo){
+        logoBox.innerHTML = `<img src="${meta.logo}" alt="logo">`;
+        navLogo.innerHTML = `<img src="${meta.logo}" alt="logo" style="width:100%;height:100%;object-fit:cover"/>`;
+      } else {
+        logoBox.innerHTML = `<div style="font-weight:800;color:var(--nav-blue)">Your Logo</div>`;
+        navLogo.innerText = 'F';
+      }
+
+      if(meta.background){
+        document.body.style.background = `url('${meta.background}') center/cover no-repeat`;
+      } else {
+        document.body.style.background = 'var(--bg-default)';
+      }
+
+      const content = document.getElementById('content');
+      const dashboardWrap = content.querySelector('.dashboard-wrap');
+      if(dashboardWrap){
+        if(meta.dashboard){
+          dashboardWrap.innerHTML = `<img src="${meta.dashboard}" alt="dashboard">`;
+        } else {
+          dashboardWrap.innerHTML = `<div class="muted">Admin-uploaded dashboard image will appear here (double height).</div>`;
+        }
+      }
+    }
+
+    // navigation routing
+    function navigate(page){
+      const cur = current();
+      if(!cur){ openLogin(); notify('Please login'); return; }
+      if(window.innerWidth < 1000) sidebar.classList.remove('open');
+
+      switch(page){
+        case 'dashboard': renderDashboard(); break;
+        case 'raw': renderRawMaterials(); break;
+        case 'prod': renderProductionOrders(); break;
+        case 'man': renderManufacturing(); break;
+        case 'fin': renderFinishedGoods(); break;
+        case 'sales': renderSalesOrders(); break;
+        case 'dispatch': renderDispatch(); break;
+        case 'reports': renderReports(); break;
+        case 'inbox': renderInbox(); break;
+        case 'pending': renderPending(); break;
+        case 'adminUsers': renderAdminUsers(); break;
+        case 'profile': renderProfile(); break;
+        default: renderDashboard();
+      }
+    }
+
+    // when logged in
+    function onLoggedIn(){
+      const cur = current();
+      if(!cur) return;
+      document.getElementById('welcomeTitle').innerText = `${cur.fullName} — ${cur.role}`;
+      document.getElementById('welcomeSub').innerText = `Logged in as ${cur.username}`;
+      document.getElementById('authButtons').style.display='none';
+      document.getElementById('userControls').style.display='flex';
+      renderSmallProfile();
+      renderPendingBadge();
+      renderAdminControls();
+      renderMetaAssets();
+
+      if(cur.role === 'Driver') navigate('dispatch');
+      else if(cur.role === 'Sales Officer') navigate('sales');
+      else if(cur.role === 'Manager') navigate('man');
+      else if(cur.role === 'CEO') navigate('dashboard');
+      else navigate('dashboard');
+    }
+
+    function renderSmallProfile(){
+      const cur = current();
+      const el = document.getElementById('smallProfile');
+      if(!cur){ el.innerHTML = ''; return; }
+      const img = cur.profilePic ? `<img src="${cur.profilePic}" />` : `<div style="width:44px;height:44px;border-radius:8px;background:#dff3ff;display:flex;align-items:center;justify-content:center;font-weight:800">${(cur.fullName||'U')[0].toUpperCase()}</div>`;
+      el.innerHTML = `<div style="display:flex;gap:8px;align-items:center">${img}<div style="text-align:left"><div style="font-weight:800">${cur.fullName}</div><div class="muted" style="font-size:12px">${cur.role}</div></div></div>`;
+    }
+
+    // === CRUD: RAW MATERIALS ===
+    function renderRawMaterials(){
+      const raws = load(K.RAW) || [];
+      let html = `<div class="card"><h3>Raw Materials</h3><div class="muted">Manage raw material inventory</div>`;
+      if(isEditable()){
+        html += `<div class="form-row" style="margin-top:12px">
+          <div class="form-group"><label>Name</label><input id="rawName" type="text" /></div>
+          <div class="form-group"><label>Unit</label><input id="rawUnit" type="text" placeholder="kg, pcs" /></div>
+          <div class="form-group"><label>Quantity</label><input id="rawQty" type="number" value="0" /></div>
+        </div>
+        <div style="margin-top:8px"><button class="btn" onclick="addRaw()">Add Material</button></div>`;
+      } else {
+        html += `<div style="margin-top:12px" class="muted">You have view-only access to raw materials.</div>`;
+      }
+
+      html += `<table><thead><tr><th>Name</th><th>Unit</th><th>Qty</th><th>Actions</th></tr></thead><tbody>`;
+      for(const r of raws){
+        html += `<tr><td>${r.name}</td><td>${r.unit}</td><td>${r.qty}</td><td>`;
+        if(isEditable()){
+          html += `<div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="editRaw('${r.id}')">Edit</button><button class="btn" onclick="deleteRaw('${r.id}')">Delete</button></div>`;
+        } else {
+          html += `<span class="muted">No actions</span>`;
+        }
+        html += `</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function addRaw(){
+      const name = document.getElementById('rawName').value.trim();
+      const unit = document.getElementById('rawUnit').value.trim();
+      const qty = Number(document.getElementById('rawQty').value) || 0;
+      if(!name || !unit){ notify('Provide name and unit'); return; }
+      const raws = load(K.RAW) || [];
+      raws.push({ id: uid('r'), name, unit, qty, createdAt: Date.now() });
+      save(K.RAW, raws);
+      renderRawMaterials();
+      notify('Raw material added');
+    }
+
+    function editRaw(id){
+      const raws = load(K.RAW) || [];
+      const r = raws.find(x=>x.id===id);
+      if(!r) return;
+      const name = prompt('Name', r.name); if(name===null) return;
+      const unit = prompt('Unit', r.unit); if(unit===null) return;
+      const qty = prompt('Qty', r.qty); if(qty===null) return;
+      r.name = name; r.unit = unit; r.qty = Number(qty);
+      save(K.RAW, raws);
+      renderRawMaterials();
+      notify('Raw material updated');
+    }
+
+    function deleteRaw(id){
+      if(!confirm('Delete material?')) return;
+      let raws = load(K.RAW) || [];
+      raws = raws.filter(r=>r.id!==id);
+      save(K.RAW, raws);
+      renderRawMaterials();
+      notify('Deleted');
+    }
+
+    // === PRODUCTION ORDERS ===
+    function renderProductionOrders(){
+      const prods = load(K.PROD) || [];
+      let html = `<div class="card"><h3>Production Orders</h3><div class="muted">Create and track production orders</div>`;
+      if(isEditable()){
+        html += `<div class="form-row" style="margin-top:12px">
+          <div class="form-group"><label>Order Code</label><input id="poCode" type="text" /></div>
+          <div class="form-group"><label>Product Name</label><input id="poProduct" type="text" /></div>
+          <div class="form-group"><label>Quantity</label><input id="poQty" type="number" value="0" /></div>
+        </div>
+        <div style="margin-top:8px"><button class="btn" onclick="addProd()">Create Order</button></div>`;
+      } else {
+        html += `<div style="margin-top:12px" class="muted">You have view-only access to production orders.</div>`;
+      }
+
+      html += `<table><thead><tr><th>Code</th><th>Product</th><th>Qty</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+      for(const p of prods){
+        html += `<tr><td>${p.code}</td><td>${p.product}</td><td>${p.qty}</td><td>${p.status||'Pending'}</td><td>`;
+        if(isEditable()){
+          html += `<div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="viewProd('${p.id}')">View</button><button class="btn" onclick="deleteProd('${p.id}')">Delete</button></div>`;
+        } else html += `<span class="muted">No actions</span>`;
+        html += `</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function addProd(){
+      const code = document.getElementById('poCode').value.trim();
+      const product = document.getElementById('poProduct').value.trim();
+      const qty = Number(document.getElementById('poQty').value) || 0;
+      if(!code || !product || qty<=0){ notify('Complete order details'); return; }
+      const prods = load(K.PROD) || [];
+      prods.push({ id: uid('p'), code, product, qty, status:'Pending', createdAt: Date.now() });
+      save(K.PROD, prods);
+      renderProductionOrders();
+      notify('Production order created');
+    }
+
+    function viewProd(id){
+      const p = (load(K.PROD)||[]).find(x=>x.id===id);
+      if(!p) return;
+      alert(`Code: ${p.code}\nProduct: ${p.product}\nQty: ${p.qty}\nStatus: ${p.status}`);
+    }
+
+    function deleteProd(id){
+      if(!confirm('Delete order?')) return;
+      let prods = load(K.PROD) || [];
+      prods = prods.filter(p=>p.id!==id);
+      save(K.PROD, prods);
+      renderProductionOrders();
+      notify('Deleted');
+    }
+
+    // === MANUFACTURING ===
+    function renderManufacturing(){
+      const prods = load(K.PROD) || [];
+      const raws = load(K.RAW) || [];
+      let html = `<div class="card"><h3>Manufacturing</h3><div class="muted">Use raw materials to produce finished goods</div>`;
+      if(isEditable()){
+        html += `<div class="form-row" style="margin-top:12px">
+          <div class="form-group"><label>Select Production Order</label><select id="manOrder"><option value="">-- select --</option>${prods.map(p=>`<option value="${p.id}">${p.code} - ${p.product} (${p.qty})</option>`).join('')}</select></div>
+          <div class="form-group"><label>Quantity to manufacture</label><input id="manQty" type="number" value="0" /></div>
+        </div>
+        <div style="margin-top:8px"><button class="btn" onclick="manufacture()">Manufacture</button></div>`;
+      } else {
+        html += `<div style="margin-top:12px" class="muted">You have view-only access to manufacturing.</div>`;
+      }
+
+      html += `<hr/><h4>Raw Materials</h4><table><thead><tr><th>Name</th><th>Unit</th><th>Qty</th></tr></thead><tbody>`;
+      for(const r of raws) html += `<tr><td>${r.name}</td><td>${r.unit}</td><td>${r.qty}</td></tr>`;
+      html += `</tbody></table></div>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function manufacture(){
+      const orderId = document.getElementById('manOrder').value;
+      const qty = Number(document.getElementById('manQty').value) || 0;
+      if(!orderId || qty <= 0){ notify('Select order and enter quantity'); return; }
+      const prods = load(K.PROD) || []; const order = prods.find(p=>p.id===orderId);
+      if(!order){ notify('Order missing'); return; }
+      const raws = load(K.RAW) || [];
+      if(raws.length===0){ notify('No raw materials'); return; }
+      // basic consumption: find raw with enough qty
+      const raw = raws.find(r=>r.qty >= qty);
+      if(!raw){ notify('Insufficient raw materials'); return; }
+      raw.qty -= qty; save(K.RAW, raws);
+
+      const fins = load(K.FIN) || [];
+      const existing = fins.find(f=>f.product === order.product);
+      if(existing) existing.qty += qty;
+      else fins.push({ id: uid('f'), product: order.product, qty, createdAt: Date.now() });
+      save(K.FIN, fins);
+
+      const man = load(K.MAN) || []; man.push({ id: uid('m'), orderId, product: order.product, qty, rawUsed: raw.id, ts: Date.now(), by: (current()||{}).username }); save(K.MAN, man);
+
+      if(qty >= order.qty) { order.status = 'Completed'; save(K.PROD, prods); }
+
+      notify(`Manufactured ${qty} ${order.product}`);
+      renderManufacturing();
+    }
+
+    // === FINISHED GOODS ===
+    function renderFinishedGoods(){
+      const fins = load(K.FIN) || [];
+      let html = `<div class="card"><h3>Finished Goods</h3><div class="muted">Track finished products</div>`;
+      html += `<table><thead><tr><th>Product</th><th>Qty</th><th>Actions</th></tr></thead><tbody>`;
+      for(const f of fins){
+        html += `<tr><td>${f.product}</td><td>${f.qty}</td><td>`;
+        if(isEditable()){
+          html += `<div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="editFinished('${f.id}')">Edit</button><button class="btn" onclick="deleteFinished('${f.id}')">Delete</button></div>`;
+        } else html += `<span class="muted">No actions</span>`;
+        html += `</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function editFinished(id){
+      const fins = load(K.FIN) || []; const f = fins.find(x=>x.id===id);
+      if(!f) return;
+      const q = prompt('Quantity', f.qty); if(q===null) return;
+      f.qty = Number(q); save(K.FIN, fins); renderFinishedGoods(); notify('Updated');
+    }
+
+    function deleteFinished(id){
+      if(!confirm('Delete item?')) return;
+      let fins = load(K.FIN) || []; fins = fins.filter(f=>f.id!==id); save(K.FIN, fins); renderFinishedGoods(); notify('Deleted');
+    }
+
+    // === SALES ORDERS ===
+    function renderSalesOrders(){
+      const fins = load(K.FIN) || [];
+      const sales = load(K.SALES) || [];
+      let html = `<div class="card"><h3>Sales Orders</h3><div class="muted">Create customer orders</div>`;
+      if(isEditable()){
+        html += `<div class="form-row" style="margin-top:12px">
+          <div class="form-group"><label>Customer</label><input id="soCustomer" type="text" /></div>
+          <div class="form-group"><label>Product</label><select id="soProduct">${fins.map(f=>`<option value="${f.id}">${f.product} (${f.qty})</option>`).join('')}</select></div>
+          <div class="form-group"><label>Qty</label><input id="soQty" type="number" value="0" /></div>
+        </div>
+        <div style="margin-top:8px"><button class="btn" onclick="createSalesOrder()">Create Order</button></div>`;
+      } else {
+        html += `<div style="margin-top:12px" class="muted">You have view-only access to sales orders.</div>`;
+      }
+
+      html += `<h4 style="margin-top:12px">Orders</h4><table><thead><tr><th>Customer</th><th>Product</th><th>Qty</th><th>Status</th><th>Actions</th></tr></thead><tbody>`;
+      for(const s of sales){
+        html += `<tr><td>${s.customer}</td><td>${s.productName}</td><td>${s.qty}</td><td>${s.status}</td><td>`;
+        if(isEditable()){
+          html += `<div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="viewOrder('${s.id}')">View</button><button class="btn" onclick="deleteOrder('${s.id}')">Delete</button></div>`;
+        } else html += `<span class="muted">No actions</span>`;
+        html += `</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function createSalesOrder(){
+      const customer = document.getElementById('soCustomer').value.trim();
+      const prodId = document.getElementById('soProduct').value;
+      const qty = Number(document.getElementById('soQty').value) || 0;
+      if(!customer || !prodId || qty<=0){ notify('Complete order details'); return; }
+      const fins = load(K.FIN) || []; const product = fins.find(f=>f.id===prodId);
+      if(!product || product.qty < qty){ notify('Insufficient finished goods'); return; }
+      product.qty -= qty; save(K.FIN, fins);
+
+      const sales = load(K.SALES) || []; const order = { id: uid('s'), customer, productId:prodId, productName:product.product, qty, status:'Pending', createdAt: Date.now() };
+      sales.push(order); save(K.SALES, sales);
+      renderSalesOrders(); notify('Sales order created');
+    }
+
+    function viewOrder(id){
+      const s = (load(K.SALES)||[]).find(x=>x.id===id);
+      if(!s) return; alert(`Customer: ${s.customer}\nProduct: ${s.productName}\nQty: ${s.qty}\nStatus: ${s.status}`);
+    }
+
+    function deleteOrder(id){
+      if(!confirm('Delete order?')) return;
+      let sales = load(K.SALES)||[]; sales = sales.filter(s=>s.id!==id); save(K.SALES, sales); renderSalesOrders(); notify('Deleted');
+    }
+
+    // === DISPATCH ===
+    function renderDispatch(){
+      const sales = load(K.SALES) || [];
+      const disp = load(K.DISP) || [];
+      const users = load(K.USERS) || [];
+      let html = `<div class="card"><h3>Dispatch</h3><div class="muted">Schedule shipments for orders</div>`;
+      if(isEditable()){
+        html += `<div class="form-row" style="margin-top:12px">
+          <div class="form-group"><label>Sales Order</label><select id="dispOrder">${sales.map(s=>`<option value="${s.id}">${s.customer} - ${s.productName} (${s.qty}) [${s.status}]</option>`).join('')}</select></div>
+          <div class="form-group"><label>Assign Driver</label><select id="dispDriver"><option value="">-- select --</option>${users.filter(u=>u.role==='Driver').map(d=>`<option value="${d.username}">${d.fullName || d.username}</option>`).join('')}</select></div>
+        </div>
+        <div style="margin-top:8px"><button class="btn" onclick="scheduleDispatch()">Schedule Dispatch</button></div>`;
+      } else {
+        html += `<div style="margin-top:12px" class="muted">Drivers view assigned dispatch schedules only. Managers/Admins may create them.</div>`;
+      }
+
+      html += `<h4 style="margin-top:12px">Scheduled</h4><table><thead><tr><th>Order</th><th>Driver</th><th>Date</th><th>Actions</th></tr></thead><tbody>`;
+      for(const d of disp){
+        html += `<tr><td>${d.orderSummary}</td><td>${d.driver}</td><td>${new Date(d.ts).toLocaleString()}</td><td>`;
+        if(isEditable()){
+          html += `<div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="viewDispatch('${d.id}')">View</button><button class="btn" onclick="deleteDispatch('${d.id}')">Delete</button></div>`;
+        } else html += `<span class="muted">No actions</span>`;
+        html += `</td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function scheduleDispatch(){
+      const orderId = document.getElementById('dispOrder').value;
+      const driver = document.getElementById('dispDriver').value;
+      if(!orderId || !driver){ notify('Select order & driver'); return; }
+      const sales = load(K.SALES)||[]; const order = sales.find(s=>s.id===orderId);
+      if(!order){ notify('Order missing'); return; }
+      const disp = load(K.DISP)||[]; const d = { id: uid('d'), orderId, orderSummary: `${order.customer} - ${order.productName} (${order.qty})`, driver, ts: Date.now() };
+      disp.push(d); save(K.DISP, disp);
+      order.status = 'Dispatched'; save(K.SALES, sales);
+      sendMessage(driver, `Assigned delivery: ${d.orderSummary}`);
+      renderDispatch(); notify('Dispatch scheduled & driver notified');
+    }
+
+    function viewDispatch(id){
+      const d = (load(K.DISP)||[]).find(x=>x.id===id); if(!d) return; alert(`Order: ${d.orderSummary}\nDriver: ${d.driver}\nScheduled: ${new Date(d.ts).toLocaleString()}`);
+    }
+
+    function deleteDispatch(id){
+      if(!confirm('Delete dispatch?')) return;
+      let disp = load(K.DISP)||[]; disp = disp.filter(d=>d.id!==id); save(K.DISP, disp); renderDispatch(); notify('Deleted');
+    }
+
+    // === REPORTS ===
+    let lastReport = null;
+    function renderReports(){
+      let html = `<div class="card"><h3>Reports</h3><div class="muted">Filter and generate reports (Print / CSV)</div>
+        <div class="form-row" style="margin-top:12px">
+          <div class="form-group"><label>Module</label><select id="reportModule"><option value="raw">Raw Materials</option><option value="production">Production Orders</option><option value="manufacturing">Manufacturing</option><option value="finished">Finished Goods</option><option value="sales">Sales Orders</option><option value="dispatch">Dispatch</option><option value="messages">Messages</option></select></div>
+          <div class="form-group"><label>From</label><input id="reportFrom" type="date" /></div>
+          <div class="form-group"><label>To</label><input id="reportTo" type="date" /></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px"><button class="btn btn-ghost" onclick="generateReport()">Generate</button><button class="btn" onclick="printReport()">Print</button><button class="btn" onclick="exportCSV()">Export CSV</button></div>
+        <div id="reportArea" style="margin-top:12px"></div></div>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function generateReport(){
+      const mod = document.getElementById('reportModule').value;
+      const from = document.getElementById('reportFrom').value;
+      const to = document.getElementById('reportTo').value;
+      const fromTs = from ? new Date(from).setHours(0,0,0,0) : 0;
+      const toTs = to ? new Date(to).setHours(23,59,59,999) : Date.now();
+
+      let rows = [], header='';
+      if(mod==='raw'){ header='Raw Materials'; rows = (load(K.RAW)||[]).filter(r=>r.createdAt>=fromTs && r.createdAt<=toTs); }
+      else if(mod==='production'){ header='Production Orders'; rows = (load(K.PROD)||[]).filter(r=>r.createdAt>=fromTs && r.createdAt<=toTs); }
+      else if(mod==='manufacturing'){ header='Manufacturing'; rows = (load(K.MAN)||[]).filter(r=>r.ts>=fromTs && r.ts<=toTs); }
+      else if(mod==='finished'){ header='Finished Goods'; rows = (load(K.FIN)||[]).filter(r=>r.createdAt>=fromTs && r.createdAt<=toTs); }
+      else if(mod==='sales'){ header='Sales Orders'; rows = (load(K.SALES)||[]).filter(r=>r.createdAt>=fromTs && r.createdAt<=toTs); }
+      else if(mod==='dispatch'){ header='Dispatch'; rows = (load(K.DISP)||[]).filter(r=>r.ts>=fromTs && r.ts<=toTs); }
+      else if(mod==='messages'){ header='Messages'; rows = (load(K.MSG)||[]).filter(r=>r.ts>=fromTs && r.ts<=toTs); }
+
+      let html = `<div class="card"><h3>${header} Report</h3><div class="muted">From: ${from || 'Start'} To: ${to || 'Now'}</div>`;
+      if(!rows.length) html += `<div class="muted" style="margin-top:8px">No records</div>`;
+      else {
+        const keys = Object.keys(rows[0]);
+        html += `<table><thead><tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${keys.map(k=>`<td>${escapeHTML(String(r[k]===undefined?'':(typeof r[k]==='object'?JSON.stringify(r[k]):r[k])))}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+        lastReport = { header, keys, rows };
+      }
+      html += `</div>`;
+      document.getElementById('reportArea').innerHTML = html;
+    }
+
+    function printReport(){
+      if(!lastReport){ notify('Generate a report first'); return; }
+      const w = window.open('','PRINT','height=800,width=1000');
+      w.document.write(`<html><head><title>${lastReport.header}</title><style>body{font-family:Arial;padding:20px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left}</style></head><body>`);
+      w.document.write(`<h2>${escapeHTML(lastReport.header)}</h2><table><thead><tr>${lastReport.keys.map(k=>`<th>${escapeHTML(k)}</th>`).join('')}</tr></thead><tbody>`);
+      for(const r of lastReport.rows){ w.document.write('<tr>'+lastReport.keys.map(k=>`<td>${escapeHTML(String(r[k]===undefined?'':(typeof r[k]==='object'?JSON.stringify(r[k]):r[k])))}</td>`).join('')+'</tr>'); }
+      w.document.write('</tbody></table></body></html>');
+      w.document.close(); w.focus(); setTimeout(()=>w.print(),300);
+    }
+
+    function exportCSV(){
+      if(!lastReport || !lastReport.rows){ notify('Generate a report first'); return; }
+      const { header, keys, rows } = lastReport;
+      if(!rows.length){ notify('No data to export'); return; }
+      const csv = [keys.join(',')].concat(rows.map(r=>keys.map(k=>csvEscape(r[k])).join(','))).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', (header||'report').replace(/\s+/g,'_').toLowerCase() + '.csv');
+      document.body.appendChild(link); link.click(); document.body.removeChild(link);
+      notify('CSV exported');
+    }
+    function csvEscape(v){
+      if(v===null||v===undefined) return '';
+      let s = (typeof v==='object') ? JSON.stringify(v) : String(v);
+      if(s.includes('"')||s.includes(',')||s.includes('\n')) s = '"' + s.replace(/"/g,'""') + '"';
+      return s;
+    }
+    function escapeHTML(s){ return s.replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // === MESSAGING / INBOX ===
+    function renderInbox(){
+      const cur = current(); if(!cur){ openLogin(); notify('Login to view inbox'); return; }
+      const msgs = load(K.MSG) || [];
+      const partners = {};
+      msgs.forEach(m=>{ if(m.from === cur.username) partners[m.to] = true; if(m.to === cur.username) partners[m.from] = true; });
+      const pList = Object.keys(partners).filter(x=>x);
+
+      let html = `<div class="card"><h3>Inbox</h3><div class="muted">Send, receive and reply</div><div style="display:flex;gap:12px;margin-top:12px">`;
+      html += `<div style="width:260px" class="card"><h4>Conversations</h4><div style="margin-top:8px"><button class="btn" onclick="composeMessage()">New</button></div><div class="inbox-list" style="margin-top:8px">`;
+      if(pList.length) html += pList.map(p=>`<div style="padding:8px;border-bottom:1px solid #f0f7ff;cursor:pointer" onclick="openConversation('${p}')">${p}</div>`).join('');
+      else html += `<div class="muted">No conversations</div>`;
+      html += `</div></div>`;
+
+      html += `<div class="card" style="flex:1"><h4>Conversation</h4><div class="muted">Select a conversation or compose a new message.</div></div>`;
+      html += `</div></div>`;
+
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function composeMessage(){
+      const users = load(K.USERS) || [];
+      const cur = current();
+      const area = document.getElementById('content');
+      let html = `<div class="card"><h3>Compose</h3><div class="form-row"><div class="form-group"><label>To</label><select id="msgTo">${users.filter(u=>u.username !== cur.username).map(u=>`<option value="${u.username}">${u.fullName} (${u.username}) - ${u.role}</option>`).join('')}</select></div></div><div style="margin-top:8px"><label>Message</label><textarea id="msgText" rows="6"></textarea></div><div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn" onclick="sendFromCompose()">Send</button></div></div>`;
+      area.innerHTML = html;
+    }
+
+    function sendFromCompose(){
+      const to = document.getElementById('msgTo').value;
+      const text = document.getElementById('msgText').value.trim();
+      if(!text || !to){ notify('Write a message'); return; }
+      sendMessage(to, text);
+      renderInbox();
+      notify('Message sent');
+    }
+
+    function sendMessage(to, content){
+      const cur = current(); if(!cur) return;
+      const msgs = load(K.MSG) || [];
+      msgs.push({ id: uid('m'), from: cur.username, to, content, ts: Date.now(), read:false });
+      save(K.MSG, msgs);
+    }
+
+    function openConversation(username){
+      const cur = current();
+      if(!cur) return;
+      const msgs = (load(K.MSG)||[]).filter(m => (m.from === cur.username && m.to === username) || (m.from === username && m.to === cur.username)).sort((a,b)=>a.ts - b.ts);
+      let html = `<div class="card"><h3>Conversation with ${username}</h3><div style="max-height:380px;overflow:auto;display:flex;flex-direction:column;gap:8px">`;
+      for(const m of msgs){
+        html += `<div style="align-self:${m.from===cur.username ? 'flex-end' : 'flex-start'};max-width:75%"><div style="background:${m.from===cur.username ? '#dff3ff' : '#f3fbff'};padding:8px;border-radius:8px"><b>${m.from}</b><div class="muted" style="font-size:12px">${new Date(m.ts).toLocaleString()}</div><div style="margin-top:6px">${escapeHTML(m.content)}</div></div></div>`;
+      }
+      html += `</div><div style="display:flex;gap:8px;margin-top:8px"><input id="replyBox" type="text" style="flex:1;padding:10px;border-radius:8px"/><button class="btn" onclick="replyTo('${username}')">Send</button></div></div>`;
+      document.getElementById('content').innerHTML = html;
+
+      // mark read
+      const all = load(K.MSG) || [];
+      for(const m of all) if(m.to === cur.username && m.from === username) m.read = true;
+      save(K.MSG, all);
+    }
+
+    function replyTo(username){
+      const txt = document.getElementById('replyBox').value.trim();
+      if(!txt){ notify('Enter reply'); return; }
+      sendMessage(username, txt);
+      openConversation(username);
+    }
+
+    // === PENDING REQUESTS ===
+    function renderPending(){
+      const cur = current(); if(!cur || cur.role !== 'Admin'){ notify('Only Admin can view pending requests'); return; }
+      const pending = load(K.PENDING) || [];
+      let html = `<div class="card"><h3>Pending Requests</h3><div class="muted">Approve or reject new user sign-ups</div><table style="margin-top:12px"><thead><tr><th>Name</th><th>Email</th><th>Username</th><th>Role</th><th>Requested</th><th>Actions</th></tr></thead><tbody>`;
+      for(const p of pending){
+        html += `<tr><td>${p.fullName}</td><td>${p.email}</td><td>${p.username}</td><td>${p.role}</td><td>${new Date(p.requestedAt).toLocaleString()}</td><td><div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="approve('${p.id}')">Approve</button><button class="btn" onclick="reject('${p.id}')">Reject</button></div></td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function approve(id){
+      if(!confirm('Approve user?')) return;
+      let pending = load(K.PENDING) || []; const req = pending.find(p=>p.id===id);
+      if(!req) return;
+      pending = pending.filter(p=>p.id!==id); save(K.PENDING, pending);
+      const users = load(K.USERS) || []; users.push({ id: uid('u'), fullName: req.fullName, email: req.email, username: req.username, password: req.password, role: req.role, active: true, profilePic: null, createdAt: Date.now() });
+      save(K.USERS, users);
+
+      const msgs = load(K.MSG) || []; msgs.push({ id: uid('m'), from: 'system', to: req.username, content: 'Your registration was approved. You can now login.', ts: Date.now(), read:false }); save(K.MSG, msgs);
+
+      renderPending();
+      notify('User approved');
+    }
+
+    function reject(id){
+      if(!confirm('Reject user?')) return;
+      let pending = load(K.PENDING) || []; const req = pending.find(p=>p.id===id); if(!req) return;
+      pending = pending.filter(p=>p.id!==id); save(K.PENDING, pending);
+      const msgs = load(K.MSG) || []; msgs.push({ id: uid('m'), from:'system', to:req.username, content:'Your registration was rejected.', ts: Date.now(), read:false }); save(K.MSG, msgs);
+      renderPending(); notify('User rejected');
+    }
+
+    // === ADMIN USER MANAGEMENT ===
+    function renderAdminUsers(){
+      const cur = current(); if(!cur || cur.role !== 'Admin'){ notify('Admin only'); return; }
+      const users = load(K.USERS) || [];
+      let html = `<div class="card"><h3>Manage Users</h3><div class="muted">Add, edit or delete users</div><div style="margin-top:8px"><button class="btn" onclick="openAdminAdd()">Add User</button></div><table style="margin-top:12px"><thead><tr><th>Name</th><th>Email</th><th>Username</th><th>Role</th><th>Active</th><th>Actions</th></tr></thead><tbody>`;
+      for(const u of users){
+        html += `<tr><td>${u.fullName}</td><td>${u.email}</td><td>${u.username}</td><td>${u.role}</td><td>${u.active ? 'Yes' : 'No'}</td><td><div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="editUser('${u.id}')">Edit</button><button class="btn" onclick="deleteUser('${u.id}')">Delete</button></div></td></tr>`;
+      }
+      html += `</tbody></table></div>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function adminAddUser(){
+      const full = document.getElementById('admFull').value.trim();
+      const email = document.getElementById('admEmail').value.trim();
+      const username = document.getElementById('admUser').value.trim();
+      const pass = document.getElementById('admPass').value;
+      const role = document.getElementById('admRole').value;
+      if(!full || !email || !username || !pass){ notify('Fill all fields'); return; }
+      const users = load(K.USERS) || [];
+      if(users.some(u=>u.username === username)){ notify('Username exists'); return; }
+      users.push({ id: uid('u'), fullName: full, email, username, password: pass, role, active:true, profilePic:null, createdAt: Date.now() });
+      save(K.USERS, users);
+      closeAdminAdd();
+      renderAdminUsers();
+      notify('User added');
+    }
+
+    function editUser(id){
+      const users = load(K.USERS) || []; const u = users.find(x=>x.id===id); if(!u) return;
+      const full = prompt('Full name', u.fullName); if(full===null) return;
+      const email = prompt('Email', u.email); if(email===null) return;
+      const role = prompt('Role', u.role); if(role===null) return;
+      const active = confirm('Set active? OK=active, Cancel=inactive');
+      u.fullName = full; u.email = email; u.role = role; u.active = active;
+      save(K.USERS, users); renderAdminUsers(); notify('User updated');
+    }
+
+    function deleteUser(id){
+      if(!confirm('Delete user?')) return;
+      let users = load(K.USERS) || []; users = users.filter(u=>u.id!==id); save(K.USERS, users); renderAdminUsers(); notify('Deleted');
+    }
+
+    // === PROFILE & SETTINGS ===
+    function renderProfile(){
+      const cur = current(); if(!cur){ openLogin(); notify('Login first'); return; }
+      let html = `<div class="card"><h3>Profile & Settings</h3><div class="muted">Update your profile and change password</div><div style="display:flex;gap:12px;align-items:center;margin-top:12px">`;
+      html += `<div>`;
+      html += cur.profilePic ? `<img src="${cur.profilePic}" style="width:140px;height:140px;border-radius:10px;object-fit:cover"/>` : `<div style="width:140px;height:140px;border-radius:10px;background:#dff3ff;display:flex;align-items:center;justify-content:center;font-weight:800">${(cur.fullName||'U')[0].toUpperCase()}</div>`;
+      html += `<div style="margin-top:8px"><button class="btn" onclick="chooseProfilePic()">Upload Profile Picture</button></div></div>`;
+
+      html += `<div style="flex:1"><div class="form-row"><div class="form-group"><label>Full name</label><input id="pfName" type="text" value="${cur.fullName}" /></div><div class="form-group"><label>Email</label><input id="pfEmail" type="email" value="${cur.email}" /></div></div>`;
+      html += `<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px"><button class="btn btn-ghost" onclick="renderProfile()">Reset</button><button class="btn" onclick="saveProfile()">Save</button></div><hr style="margin:12px 0" /><h4>Change Password</h4>`;
+      html += `<div class="form-row"><div class="form-group"><label>Current password</label><input id="curPass" type="password" /></div><div class="form-group"><label>New password</label><input id="newPass" type="password" /></div></div>`;
+      html += `<div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn" onclick="changePassword()">Change Password</button></div></div></div></div>`;
+      document.getElementById('content').innerHTML = html;
+    }
+
+    function chooseProfilePic(){
+      const inp = document.getElementById('profilePicInput'); inp.value=''; inp.click();
+      inp.onchange = function(e){
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader(); reader.onload = function(ev){
+          const base = ev.target.result; const cur = current(); if(!cur) return;
+          cur.profilePic = base;
+          const users = load(K.USERS) || []; const u = users.find(x=>x.username===cur.username); if(u){ u.profilePic = base; save(K.USERS, users); }
+          save(K.CURRENT, cur); renderProfile(); renderSmallProfile(); notify('Profile picture updated');
+        }; reader.readAsDataURL(file);
+      };
+    }
+
+    function saveProfile(){
+      const cur = current(); if(!cur) return;
+      const full = document.getElementById('pfName').value.trim(); const email = document.getElementById('pfEmail').value.trim();
+      cur.fullName = full; cur.email = email;
+      const users = load(K.USERS) || []; const u = users.find(x=>x.username===cur.username); if(u){ u.fullName = full; u.email = email; save(K.USERS, users); }
+      save(K.CURRENT, cur); renderSmallProfile(); notify('Profile saved');
+    }
+
+    function changePassword(){
+      const cur = current(); if(!cur) return;
+      const cp = document.getElementById('curPass').value; const np = document.getElementById('newPass').value;
+      if(!cp || !np){ notify('Provide both fields'); return; }
+      if(cp !== cur.password){ notify('Current password mismatch'); return; }
+      cur.password = np; const users = load(K.USERS) || []; const u = users.find(x=>x.username===cur.username); if(u){ u.password = np; save(K.USERS, users); }
+      save(K.CURRENT, cur); document.getElementById('curPass').value=''; document.getElementById('newPass').value=''; notify('Password changed');
+    }
+
+    // === UPLOADS ===
+    function triggerUpload(type){
+      const cur = current(); if(!cur || cur.role !== 'Admin'){ notify('Admin only'); return; }
+      const inp = type === 'logo' ? document.getElementById('uploadLogo') : (type === 'background' ? document.getElementById('uploadBg') : document.getElementById('uploadDash'));
+      inp.value=''; inp.click();
+      inp.onchange = function(e){
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader(); reader.onload = function(ev){
+          const base = ev.target.result;
+          const meta = load(K.META) || { logo:null, background:null, dashboard:null };
+          if(type === 'logo') meta.logo = base;
+          else if(type === 'background') meta.background = base;
+          else meta.dashboard = base;
+          save(K.META, meta);
+          renderMetaAssets();
+          notify(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded`);
+        }; reader.readAsDataURL(file);
+      };
+    }
+
+    // === DASHBOARD ===
+    function renderDashboard(){
+      const cur = current(); if(!cur){ openLogin(); notify('Please login'); return; }
+      const meta = load(K.META) || {};
+      const raws = load(K.RAW)||[]; const fins = load(K.FIN)||[]; const sales = load(K.SALES)||[];
+      let html = `<div class="card">`;
+
+      // dashboard image
+      html += `<div class="dashboard-wrap card">`;
+      if(meta.dashboard){
+        html += `<img src="${meta.dashboard}" alt="dashboard">`;
+      } else {
+        html += `<div class="muted">Admin-uploaded dashboard image will appear here (double height).</div>`;
+      }
+      html += `</div>`;
+
+      // main panels
+      html += `<div style="display:flex;gap:14px;margin-top:14px;align-items:flex-start">`;
+      html += `<div style="flex:1"><div class="grid">`;
+      html += `<div class="card"><h3>Overview</h3><div class="muted">Quick stats</div><div style="display:flex;gap:8px;margin-top:8px">
+                <div class="card" style="padding:10px;flex:1"><div class="muted">Raw Materials</div><div style="font-size:20px;font-weight:800">${raws.length}</div></div>
+                <div class="card" style="padding:10px;flex:1"><div class="muted">Finished Goods (total qty)</div><div style="font-size:20px;font-weight:800">${fins.reduce((s,i)=>s+(i.qty||0),0)}</div></div>
+                <div class="card" style="padding:10px;flex:1"><div class="muted">Sales Orders</div><div style="font-size:20px;font-weight:800">${sales.length}</div></div>
+               </div></div>`;
+
+      if(cur.role === 'CEO'){
+        html += `<div class="card"><h3>CEO Tools</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="ceoCreateTask()">Prepare Work Task</button><button class="btn" onclick="ceoScheduleMeeting()">Schedule Meeting</button><button class="btn" onclick="composeMessage()">Compose Notice</button></div></div>`;
+      } else if(cur.role === 'Manager'){
+        html += `<div class="card"><h3>Manager</h3><div class="muted">Staff & production reports</div></div>`;
+      } else if(cur.role === 'Sales Officer'){
+        html += `<div class="card"><h3>Sales</h3><div class="muted">Customers & targets</div></div>`;
+      } else if(cur.role === 'Driver'){
+        html += `<div class="card"><h3>Driver</h3><div class="muted">Delivery schedule</div></div>`;
+      } else if(cur.role === 'Admin'){
+        html += `<div class="card"><h3>Admin</h3><div class="muted">Full access</div><div style="margin-top:8px"><button class="btn" onclick="navigate('pending')">Pending</button> <button class="btn" onclick="navigate('adminUsers')">Manage Users</button></div></div>`;
+      }
+
+      html += `</div></div>`;
+
+      html += `<div style="width:340px"><div class="card"><h3>Inbox Preview</h3><div id="inboxPreview" style="max-height:260px;overflow:auto"></div><div style="margin-top:8px"><button class="btn" onclick="navigate('inbox')">Open Inbox</button></div></div></div>`;
+
+      html += `</div></div>`;
+
+      document.getElementById('content').innerHTML = html;
+      updateInboxPreview();
+    }
+
+    function updateInboxPreview(){
+      const cur = current(); if(!cur) return;
+      const msgs = load(K.MSG)||[];
+      const recent = msgs.filter(m=>m.to===cur.username).sort((a,b)=>b.ts - a.ts).slice(0,6);
+      const container = document.getElementById('inboxPreview');
+      if(!container) return;
+      container.innerHTML = recent.map(r=>`<div style="border-bottom:1px solid #f0f7ff;padding:8px"><b>${r.from}</b><div class="muted" style="font-size:12px">${new Date(r.ts).toLocaleString()}</div><div style="font-size:13px">${escapeHTML(r.content).slice(0,80)}</div></div>`).join('') || '<div class="muted">No messages</div>';
+    }
+
+    // === CEO helper placeholders ===
+    function ceoCreateTask(){
+      const task = prompt('Task description'); if(!task) return;
+      const users = load(K.USERS) || []; const manager = users.find(u=>u.role==='Manager');
+      if(manager) sendMessage(manager.username, `New Task: ${task}`);
+      notify('Task created & assigned (if manager exists)');
+    }
+
+    function ceoScheduleMeeting(){
+      const dt = prompt('Meeting date/time (e.g. 2025-09-25 14:00)'); if(!dt) return;
+      notify('Meeting scheduled: ' + dt);
+    }
+
+    // initial boot
+    function initBoot(){
+      const cur = current();
+      if(cur) onLoggedIn();
+      renderMetaAssets();
+      renderPendingBadge();
+      renderAdminControls();
+      // content remains landing if not logged in
+    }
+    initBoot();
+
+    // expose functions to console for debug
+    window.openLogin = openLogin; window.closeLogin = closeLogin;
+    window.openSignup = openSignup; window.closeSignup = closeSignup;
+    window.toggleSidebar = toggleSidebar; window.navigate = navigate;
+    window.renderRawMaterials = renderRawMaterials; window.renderProductionOrders = renderProductionOrders;
+    window.renderManufacturing = renderManufacturing; window.renderFinishedGoods = renderFinishedGoods;
+    window.renderSalesOrders = renderSalesOrders; window.renderDispatch = renderDispatch;
+    window.renderReports = renderReports; window.renderInbox = renderInbox; window.renderPending = renderPending;
+    window.renderAdminUsers = renderAdminUsers; window.renderProfile = renderProfile; window.openAdminAdd = openAdminAdd;
+    window.closeAdminAdd = closeAdminAdd; window.adminAddUser = adminAddUser; window.triggerUpload = triggerUpload;
+    window.composeMessage = composeMessage; window.sendMessage = sendMessage; window.openConversation = openConversation;
+    window.replyTo = replyTo; window.approve = approve; window.reject = reject; window.editUser = editUser;
+    window.deleteUser = deleteUser; window.chooseProfilePic = chooseProfilePic; window.saveProfile = saveProfile; window.changePassword = changePassword;
+
+    // listen for sidebar click on navbtns to update active view
+    document.querySelectorAll('.navbtn').forEach(btn=> btn.addEventListener('click', (e)=> { /* handled by onclick attributes */ }));
+
+    // ensure side nav visibility on resize
+    window.addEventListener('resize', ()=>{ if(window.innerWidth >= 1000) sidebar.classList.remove('open'); });
+
+  </script>
+
+  <!-- Footer with admin credentials -->
+  <div style="padding:18px;text-align:center;font-size:13px;color:#444;background:#f7f9fb">
+    </code> | all rights reserved<code>
+         <code>©2025</code>
+  </div>
+</body>
+</html>
