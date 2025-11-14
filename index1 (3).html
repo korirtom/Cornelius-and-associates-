@@ -1,325 +1,994 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Personal Timetable Editor</title>
-
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FarmConnect — Farmers to Buyers (Full)</title>
+<!-- Chart.js for traffic analytics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-    body {
-        background-color: #001f3f;
-        color: white;
-        font-family: "Poppins", sans-serif;
-        margin: 0;
-        padding: 0;
-        text-align: center;
-    }
+:root{
+  --bg:#04102a; --panel:#082444; --muted:#9fb5d6; --white:#ffffff;
+  --accent:#1e90ff; --accent2:#1fa36b; --danger:#ef4444; --success:#16a34a;
+  --glass: rgba(255,255,255,0.03); --glass-border: rgba(255,255,255,0.06);
+  --card: rgba(255,255,255,0.02); --edit-blue:#0b70d6; --radius:12px;
+  --confirm-bg: rgba(2,6,23,0.8);
+}
+html{font-family:Inter,Segoe UI,Arial,sans-serif;font-size:clamp(14px,1.6vw,18px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--white);min-height:100vh;display:flex;flex-direction:column}
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(90deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center}
+.logo img{width:100%;height:100%;border-radius:12px;object-fit:cover}
+.title h1{margin:0;font-size:20px;font-weight:800}
+.title p{margin:0;color:var(--muted);font-size:13px}
+.top-actions{display:flex;gap:8px;align-items:center}
+.btn{background:linear-gradient(90deg,var(--accent),var(--accent2));color:var(--white);border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700}
+.btn.secondary{background:transparent;border:1px solid var(--glass-border)}
+.btn.small{padding:6px 10px;font-size:0.9rem}
+.hamburger{background:transparent;border:1px solid var(--glass-border);padding:8px;border-radius:8px;cursor:pointer}
+.container{max-width:1400px;margin:18px auto;display:flex;gap:16px;padding:0 12px;flex:1;min-height:calc(100vh - 120px)}
+.sidebar{width:300px;background:var(--panel);border-radius:12px;padding:12px;border:1px solid var(--glass-border);display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.sidebar.hidden{display:none}
+.side-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;border:1px solid transparent}
+.side-item:hover{background:rgba(255,255,255,0.02)}
+.side-item svg{width:20px;height:20px;fill:#fff}
+.content{flex:1;overflow:auto;padding-bottom:40px}
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:10px;padding:14px;border:1px solid var(--glass-border);margin-bottom:12px}
+label{display:block;font-weight:700;margin-top:10px;color:var(--white)}
+input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid var(--glass-border);background:transparent;color:var(--white);margin-top:6px}
+input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.5)}
+.muted{color:var(--muted);font-size:13px}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.product{border-radius:8px;padding:10px;background:var(--card);border:1px solid var(--glass-border)}
+.product img{width:100%;height:160px;object-fit:cover;border-radius:8px}
+.chat-wrap{display:flex;gap:12px}
+.contacts{width:300px;background:transparent;border-radius:8px;padding:8px;border:1px solid var(--glass-border);max-height:620px;overflow:auto}
+.chatbox{flex:1;background:transparent;border-radius:8px;padding:8px;display:flex;flex-direction:column;max-height:620px}
+.messages{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:72%;padding:10px;border-radius:10px}
+.msg.me{align-self:flex-end;background:linear-gradient(90deg,#dff7ee,#bff0d7);color:#022a1f}
+.msg.them{align-self:flex-start;background:rgba(255,255,255,0.03)}
+.timestamp{font-size:12px;color:var(--muted);margin-top:6px}
+.toast{position:fixed;right:18px;bottom:18px;min-width:260px;padding:12px;border-radius:10px;box-shadow:0 8px 30px rgba(2,6,23,0.6);z-index:9999}
+.toast.success{background:#e6ffef;color:#064e3b;border-left:6px solid var(--success)}
+.toast.error{background:#fff0f0;color:#7f1d1d;border-left:6px solid var(--danger)}
+.badge{background:var(--danger);color:#fff;padding:4px 8px;border-radius:999px;font-weight:800;font-size:12px}
+.edit-block{background:var(--edit-blue);color:var(--white);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.06)}
+@media(max-width:980px){ .container{flex-direction:column}.sidebar{width:100%} }
+.small-muted{font-size:12px;color:var(--muted)}
+.icon-btn{background:transparent;border:none;padding:8px;border-radius:8px;cursor:pointer}
 
-    h1 {
-        margin-top: 20px;
-        font-size: 2.2em;
-        text-shadow: 2px 2px 4px #000;
-    }
-
-    #logoPreview {
-        margin: 10px auto;
-        width: 120px;
-        height: 120px;
-        object-fit: contain;
-        background: white;
-        border-radius: 10px;
-        border: 2px solid #fff;
-        display: block;
-    }
-
-    .form-container {
-        max-width: 700px;
-        margin: 30px auto;
-        background-color: rgba(255, 255, 255, 0.1);
-        padding: 20px;
-        border-radius: 10px;
-    }
-
-    label {
-        display: block;
-        margin-top: 10px;
-        font-weight: bold;
-    }
-
-    input, select {
-        width: 100%;
-        padding: 10px;
-        margin-top: 5px;
-        border: none;
-        border-radius: 5px;
-        font-size: 1em;
-    }
-
-    button {
-        background: white;
-        color: #001f3f;
-        border: none;
-        border-radius: 5px;
-        padding: 10px 15px;
-        margin-top: 15px;
-        font-size: 1em;
-        cursor: pointer;
-        font-weight: bold;
-        transition: 0.3s;
-    }
-
-    button:hover {
-        background: #0d6efd;
-        color: white;
-    }
-
-    table {
-        width: 100%;
-        margin-top: 20px;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        border: 1px solid #ccc;
-        padding: 10px;
-        color: white;
-    }
-
-    th {
-        background-color: rgba(255, 255, 255, 0.15);
-    }
-
-    .bottom-buttons {
-        margin: 30px 0;
-    }
-
-    @media print {
-        body {
-            background-color: #001f3f !important;
-            color: black !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
-        th {
-            background-color: rgba(255,255,255,0.9) !important;
-            color: black !important;
-        }
-        td {
-            color: black !important;
-        }
-        img {
-            background: none !important;
-        }
-    }
+/* Confirmation modal */
+#confirmOverlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:10000}
+#confirmBox{background:rgba(2,6,23,0.9);padding:20px;border-radius:12px;width:min(560px,92%);border:1px solid rgba(255,255,255,0.06)}
+#confirmBox h4{margin:0 0 8px 0}
+#confirmBox p{margin:0 0 16px 0;color:var(--muted)}
+#confirmButtons{display:flex;gap:8px;justify-content:flex-end}
+.btn.confirm-danger{background:linear-gradient(90deg,#ef4444,#d43b3b)}
+.btn.confirm-cancel{background:transparent;border:1px solid rgba(255,255,255,0.08)}
 </style>
 </head>
-
 <body>
+  <header class="header">
+    <div class="brand">
+      <div class="logo" id="logoBox" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2L20 6v7a6 6 0 0 1-12 0V6l4-4z" fill="#fff"/></svg></div>
+      <div class="title">
+        <h1 id="platformName">FarmConnect</h1>
+        <p id="platformCaption" class="muted">Professional farmers marketplace — direct to buyers</p>
+      </div>
+    </div>
 
-<h1><i class="fa-solid fa-calendar-days"></i>Personal Timetable Editor</h1>
+    <div class="top-actions">
+      <button id="openLogin" class="btn small">Login</button>
+      <button id="openSignup" class="btn secondary small">Sign Up</button>
 
-<input type="file" id="logoInput" accept="image/*">
-<img id="logoPreview" src="" alt="Logo Preview">
+      <!-- USER sidebar toggle -->
+      <button id="userHamburger" class="hamburger" title="Toggle menu" style="display:none">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <rect y="5" width="20" height="2" rx="1" fill="#fff"></rect>
+          <rect y="11" width="20" height="2" rx="1" fill="#fff"></rect>
+          <rect y="17" width="20" height="2" rx="1" fill="#fff"></rect>
+        </svg>
+      </button>
 
-<div class="form-container">
-    <label><i class="fa-solid fa-code"></i> Course Code</label>
-    <input type="text" id="courseCode" placeholder="e.g., CSC101">
+      <button id="logoutButton" class="btn small" style="display:none;background:#dc3545">Logout</button>
 
-    <label><i class="fa-solid fa-book"></i> Course Title</label>
-    <input type="text" id="courseTitle" placeholder="e.g., Introduction to Computing">
+      <!-- ADMIN sidebar toggle -->
+      <button id="adminHamburger" class="hamburger" title="Toggle admin console" style="display:none">
+        <svg viewBox="0 0 24 24" width="20" height="20"><rect y="5" width="20" height="2" rx="1" fill="#fff"></rect><rect y="11" width="20" height="2" rx="1" fill="#fff"></rect><rect y="17" width="20" height="2" rx="1" fill="#fff"></rect></svg>
+      </button>
+    </div>
+  </header>
 
-    <label><i class="fa-solid fa-calendar-day"></i> Day</label>
-    <select id="day">
-        <option value="">Select Day</option>
-        <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
-        <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
-    </select>
+  <div class="container">
+    <aside id="sidebar" class="sidebar hidden" aria-hidden="true">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;gap:8px;align-items:center">
+          <svg width="36" height="36" viewBox="0 0 24 24"><path d="M12 2L20 6v7a8 8 0 0 1-16 0V6l8-4z" fill="#fff"/></svg>
+          <div>
+            <strong id="sideTitle">Platform</strong>
+            <div class="muted" id="sideSub">—</div>
+          </div>
+        </div>
+        <button id="closeSidebar" class="btn secondary small">Close</button>
+      </div>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03)"/>
+      <div id="navArea" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
+      <div id="refSidebar" style="margin-top:12px"></div>
+    </aside>
 
-    <label><i class="fa-solid fa-clock"></i> Time</label>
-    <input type="time" id="time">
+    <main class="content">
+      <!-- Login -->
+      <section id="viewLogin" class="card" style="display:none">
+        <h3>Login</h3>
+        <label>Username or Email</label><input id="loginInput" placeholder="username or email"/>
+        <label>Password</label><input id="loginPass" type="password" placeholder="password"/>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="btnLogin" class="btn">Login</button>
+          <button id="btnToSignup" class="btn secondary">Sign Up</button>
+        </div>
+        <p WELCOME TO Farm Connect</p>
+      </section>
 
-    <button onclick="addCourse()"><i class="fa-solid fa-plus"></i> Add Course</button>
+      <!-- Sign up -->
+      <section id="viewSignup" class="card" style="display:none">
+        <h3>Sign Up</h3>
+        <label>Username</label><input id="regUser" placeholder="username"/>
+        <label>Full names</label><input id="regNames" placeholder="full names"/>
+        <label>Email</label><input id="regEmail" placeholder="email"/>
+        <label>Phone</label><input id="regPhone" placeholder="phone"/>
+        <label>County</label><input id="regCounty" placeholder="county"/>
+        <label>Role</label><select id="regRole"><option>Farmer</option><option>Buyer</option></select>
+        <label>Password</label><input id="regPw1" type="password" placeholder="password"/>
+        <label>Confirm password</label><input id="regPw2" type="password" placeholder="confirm"/>
+        <label>4-digit PIN (not 1234 or repeating)</label><input id="regPin" placeholder="e.g., 4821"/>
+        <label>Referral code (optional)</label><input id="regReferral" placeholder="Referral code (optional)"/>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="btnRegister" class="btn">Create Account</button>
+          <button id="btnToLogin" class="btn secondary">Back to Login</button>
+        </div>
+      </section>
 
-    <table id="timetable">
-        <thead>
-            <tr>
-                <th>Course Code</th>
-                <th>Course Title</th>
-                <th>Day</th>
-                <th>Time</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
+      <!-- Home / product listing (public) -->
+      <section id="viewHome" class="card" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3>Product Listings</h3>
+          <div class="muted">Products publicly visible. Buyer actions require login. Listings require admin approval.</div>
+        </div>
+        <div id="productGrid" class="product-grid" style="margin-top:12px"></div>
+      </section>
 
-<div class="bottom-buttons">
-    <button onclick="previewTable()"><i class="fa-solid fa-eye"></i> Preview</button>
-    <button onclick="window.print()"><i class="fa-solid fa-print"></i> Print Directly</button>
-</div>
+      <!-- Post product (Farmer) -->
+      <section id="viewPost" class="card" style="display:none">
+        <h3>Post Product</h3>
+        <label>Product image</label><input id="prodImage" type="file" accept="image/*"/>
+        <label>Category</label><input id="prodCategory" placeholder="Category"/>
+        <label>Product name</label><input id="prodName" placeholder="Name"/>
+        <label>Location</label><input id="prodLocation" placeholder="Location"/>
+        <label>Quantity</label><input id="prodQuantity" placeholder="Quantity"/>
+        <label>Price (KSh)</label><input id="prodPrice" type="number" placeholder="Amount in KSh"/>
+        <div style="margin-top:12px"><button id="btnPost" class="btn">Submit for Approval</button></div>
+        <p class="form-note">Your listing will be reviewed by an administrator.</p>
+      </section>
+
+      <!-- Chat -->
+      <section id="viewChat" class="card" style="display:none">
+        <h3>Inbox & Chat</h3>
+        <div class="chat-wrap">
+          <div class="contacts">
+            <label>Contacts</label>
+            <input id="contactSearch" placeholder="Search contacts" style="margin-top:8px"/>
+            <div id="contactsArea" style="margin-top:8px"></div>
+          </div>
+          <div class="chatbox">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong id="chatWith">Select contact</strong><div id="chatWithInfo" class="muted"></div></div>
+            </div>
+            <div id="messages" class="messages"></div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <input id="msgInput" placeholder="Type a message..." style="flex:1"/>
+              <button id="btnSendMsg" class="btn">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Profile -->
+      <section id="viewProfile" class="card" style="display:none">
+        <h3>Profile</h3>
+        <div style="display:flex;gap:12px">
+          <div style="width:160px">
+            <img id="myAvatar" style="width:120px;height:120px;border-radius:12px;object-fit:cover;border:1px solid var(--glass-border)" src=""/>
+            <input id="avatarFile" type="file" accept="image/*" style="margin-top:8px"/>
+            <div style="margin-top:8px"><button id="btnUploadAvatar" class="btn small">Upload Photo</button></div>
+          </div>
+          <div style="flex:1">
+            <label>Username</label><input id="profileUser" disabled/>
+            <label>Full names</label><input id="profileNames"/>
+            <label>Email</label><input id="profileEmail"/>
+            <label>Phone</label><input id="profilePhone"/>
+            <label>County</label><input id="profileCounty"/>
+            <label>New password</label><input id="profileNewPw" type="password"/>
+            <div style="margin-top:12px"><button id="btnSaveProfile" class="btn">Save Profile</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Suggestions -->
+      <section id="viewSuggestions" class="card" style="display:none">
+        <h3>Report a user / Suggestions</h3>
+        <label>Target (username or email)</label><input id="reportTarget" placeholder="username or email"/>
+        <label>Reason / Details</label><textarea id="reportReason" placeholder="Explain the issue"></textarea>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="btnSubmitReport" class="btn">Submit Report</button>
+          <button id="btnViewMyReports" class="btn secondary">My Reports</button>
+        </div>
+        <div id="myReportsArea" style="margin-top:12px"></div>
+      </section>
+
+      <!-- Referral -->
+      <section id="viewReferral" class="card" style="display:none">
+        <h3>Referral Program</h3>
+        <div class="muted">Share your referral code. 3 unique signups using it = 1 day free access.</div>
+        <div style="margin-top:12px">
+          <label>Your referral code</label>
+          <input id="myReferralCode" disabled/>
+          <div style="margin-top:8px"><button id="btnCopyReferral" class="btn small">Copy Code</button><span id="refStatus" class="muted" style="margin-left:12px"></span></div>
+          <div style="margin-top:12px"><strong>Referrals</strong><div id="refList" style="margin-top:8px"></div></div>
+        </div>
+      </section>
+
+      <!-- Admin console -->
+      <section id="adminConsole" class="card" style="display:none">
+        <h3>Administrator Console</h3>
+        <div class="edit-block" style="margin-top:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:900">Administration</div>
+            <div class="muted">All actions are recorded locally</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px">
+
+            <div>
+              <div style="font-weight:800;margin-bottom:8px">Create User / Admin</div>
+              <input id="admNewUser" placeholder="username"/>
+              <input id="admNewNames" placeholder="full names" style="margin-top:8px"/>
+              <input id="admNewEmail" placeholder="email" style="margin-top:8px"/>
+              <select id="admNewRole" style="margin-top:8px"><option>Farmer</option><option>Buyer</option><option>Admin</option></select>
+              <div style="margin-top:8px"><button id="admAddUser" class="btn small">Create & Send Password</button></div>
+              <p class="form-note" style="margin-top:8px">Generated password will be sent to the user's inbox.</p>
+            </div>
+
+            <div>
+              <div style="font-weight:800;margin-bottom:8px">Pending Approvals</div>
+              <div id="admPendingList" style="max-height:220px;overflow:auto;padding:6px;border-radius:8px;border:1px solid var(--glass-border)"></div>
+            </div>
+
+            <div>
+              <div style="font-weight:800;margin-bottom:8px">Reports & Suggestions</div>
+              <div id="admReportsPreview" style="max-height:220px;overflow:auto;padding:6px;border-radius:8px;border:1px solid var(--glass-border)"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <div style="font-weight:800">Broadcast Message</div>
+            <input id="admBroadcastSub" placeholder="Subject" style="margin-top:8px"/>
+            <textarea id="admBroadcastBody" placeholder="Message" style="margin-top:8px"></textarea>
+            <div style="margin-top:8px;display:flex;gap:8px"><button id="admSendBroadcast" class="btn">Send</button><button id="admPreviewBroadcast" class="btn secondary">Preview</button></div>
+          </div>
+
+          <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <div style="font-weight:800">Platform Contact</div>
+              <input id="platformContact" placeholder="Contact phone / email / address" style="margin-top:8px"/>
+              <div style="margin-top:8px"><button id="btnSaveContact" class="btn small">Save Contact</button></div>
+            </div>
+            <div>
+              <div style="font-weight:800">Terms & Conditions</div>
+              <textarea id="platformTnC" placeholder="Terms and conditions" style="height:120px;margin-top:8px"></textarea>
+              <div style="margin-top:8px"><button id="btnSaveTnC" class="btn small">Save Terms</button></div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <div style="flex:1">
+              <div style="font-weight:800">Payments (KSh 20/day)</div>
+              <input id="paystackPublicKey" placeholder="Paystack public key (pk_test_xxx)" style="margin-top:8px"/>
+              <div style="display:flex;gap:8px;margin-top:8px"><button id="btnEnablePayments" class="btn small">Enable</button><button id="btnDisablePayments" class="btn small secondary">Disable</button></div>
+              <div class="muted" style="margin-top:8px">Status: <span id="payStatus">Disabled</span></div>
+            </div>
+
+            <div style="flex:1">
+              <div style="font-weight:800">User Management</div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <input id="manageUsername" placeholder="username or email" />
+                <button id="banUser" class="btn small secondary">Ban</button>
+                <button id="unbanUser" class="btn small secondary">Unban</button>
+              </div>
+              <div style="margin-top:8px;display:flex;gap:8px">
+                <button id="generatePasswordForUser" class="btn small">Generate Password</button>
+                <button id="admAddAdminBtn" class="btn small secondary">Quick Add Admin</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <button id="admShowAllUsers" class="btn secondary small">View Users</button>
+            <button id="admShowAllProducts" class="btn secondary small">View Products</button>
+            <button id="admPrintUsers" class="btn small">Print Users</button>
+            <button id="showTrafficBtn" class="btn small">Show Traffic</button>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <label style="font-weight:800;margin-right:8px">Referral Program</label>
+            <button id="btnEnableReferral" class="btn small">Enable</button>
+            <button id="btnDisableReferral" class="btn small secondary">Disable</button>
+            <div class="muted" style="margin-left:auto">Status: <span id="refStatusAdmin">Disabled</span></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Traffic -->
+      <section id="trafficSection" class="card" style="display:none">
+        <h3>Traffic Analytics</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <label style="margin:0">Range</label>
+          <select id="trafficRange" style="margin-left:8px">
+            <option value="7">Last 7 days</option>
+            <option value="30" selected>Last 30 days</option>
+            <option value="365">Last 365 days</option>
+          </select>
+          <div style="margin-left:auto" class="muted">Unique logins per day</div>
+        </div>
+        <canvas id="trafficChart" style="margin-top:12px;max-height:320px"></canvas>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Confirmation modal -->
+  <div id="confirmOverlay">
+    <div id="confirmBox">
+      <h4 id="confirmTitle">Confirm action</h4>
+      <p id="confirmMessage">Are you sure?</p>
+      <div id="confirmButtons">
+        <button id="confirmCancel" class="btn confirm-cancel">Cancel</button>
+        <button id="confirmOk" class="btn confirm-danger">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
 
 <script>
-const logoInput = document.getElementById('logoInput');
-const logoPreview = document.getElementById('logoPreview');
-const tableBody = document.querySelector('#timetable tbody');
+/* ================
+   FarmConnect SPA
+   Updated: Approved products are fully taggable and chat-able by any logged-in user.
+   Everything else preserved as in the previous long code.
+   ================ */
 
-// Restore data from local storage on load
-window.onload = function() {
-    const savedLogo = localStorage.getItem('timetableLogo');
-    const savedCourses = JSON.parse(localStorage.getItem('timetableData')) || [];
+/* ---------- Utilities & storage ---------- */
+const STORE = 'farmconnect_complete_with_user_toggle_v2';
+function readDB(){ let raw = localStorage.getItem(STORE); if(!raw){ const init = {
+  settings:{ platformName:'FarmConnect', caption:'Farmers direct to buyers', logo:'', background:'', contact:'', terms:'', paymentsEnabled:false, paystackKey:'', referralEnabled:false },
+  users:[], products:[], messages:[], reports:[], loginLogs:[]
+}; localStorage.setItem(STORE, JSON.stringify(init)); raw = localStorage.getItem(STORE);} return JSON.parse(raw); }
+function writeDB(db){ localStorage.setItem(STORE, JSON.stringify(db)); }
+function uid(pref='id'){ return pref + '_' + Math.random().toString(36).slice(2,9); }
+function now(){ return new Date().toISOString(); }
+function toast(type,text,ttl=3500){ const c=document.getElementById('toasts'); const el=document.createElement('div'); el.className='toast ' + (type==='success'?'success':'error'); el.textContent=text; c.appendChild(el); setTimeout(()=>el.remove(),ttl); }
+function readFileAsDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
 
-    if (savedLogo) logoPreview.src = savedLogo;
+/* Confirmation modal */
+const confirmOverlay = document.getElementById('confirmOverlay');
+const confirmTitle = document.getElementById('confirmTitle');
+const confirmMessage = document.getElementById('confirmMessage');
+const confirmOk = document.getElementById('confirmOk');
+const confirmCancel = document.getElementById('confirmCancel');
+let confirmResolve = null;
+function showConfirm(title, message){
+  confirmTitle.textContent = title;
+  confirmMessage.textContent = message;
+  confirmOverlay.style.display = 'flex';
+  return new Promise((res)=>{ confirmResolve = res; });
+}
+confirmOk.addEventListener('click', ()=>{ confirmOverlay.style.display='none'; if(confirmResolve) confirmResolve(true); confirmResolve=null; });
+confirmCancel.addEventListener('click', ()=>{ confirmOverlay.style.display='none'; if(confirmResolve) confirmResolve(false); confirmResolve=null; });
 
-    savedCourses.forEach(course => {
-        const row = tableBody.insertRow();
-        row.innerHTML = `
-            <td>${course.code}</td>
-            <td>${course.title}</td>
-            <td>${course.day}</td>
-            <td>${course.time}</td>
-            <td><button onclick="deleteRow(this)" style="background:#dc3545;color:white;"><i class='fa-solid fa-trash'></i></button></td>
-        `;
-    });
-};
+/* ---------- App state ---------- */
+let DB = readDB();
+let currentUser = JSON.parse(localStorage.getItem('fc_user') || 'null');
+let token = localStorage.getItem('fc_token') || null;
+let activeChat = null;
+let trafficChartRef = null;
 
-// Handle logo upload and save
-logoInput.addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = ev => {
-            logoPreview.src = ev.target.result;
-            localStorage.setItem('timetableLogo', ev.target.result);
-        };
-        reader.readAsDataURL(file);
+/* Ensure admin exists */
+(function ensureAdmin(){
+  DB = readDB();
+  if(!DB.users.some(u=>u.role==='Admin')){
+    DB.users.push({ id:uid('u'), username:'admin', names:'Administrator', email:'admin@local', phone:'', county:'', role:'Admin', password:btoa('admin'), approved:true, banned:false, avatar:'', createdAt:now(), paidUntil:null, trialExpires:null, privileges:['all'], referralCode:null, referred:[], rewardActiveUntil:null });
+    writeDB(DB);
+  }
+})();
+
+/* UI references */
+const sidebar = document.getElementById('sidebar');
+const navArea = document.getElementById('navArea');
+const refSidebar = document.getElementById('refSidebar');
+const viewIds = ['viewLogin','viewSignup','viewHome','viewPost','viewChat','viewProfile','adminConsole','trafficSection','viewSuggestions','viewReferral'];
+
+function showView(id){ viewIds.forEach(v=>{ const el=document.getElementById(v); if(el) el.style.display='none'; }); const el=document.getElementById(id); if(el) el.style.display='block'; }
+
+/* ----------------- UI rendering & sidebars ----------------- */
+function refreshUI(){
+  DB = readDB();
+  document.getElementById('platformName').textContent = DB.settings.platformName || 'FarmConnect';
+  document.getElementById('platformCaption').textContent = DB.settings.caption || '';
+  if(DB.settings.logo) document.getElementById('logoBox').innerHTML = `<img src="${DB.settings.logo}" alt="logo">`;
+  else document.getElementById('logoBox').innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2L20 6v7a6 6 0 0 1-12 0V6l4-4z" fill="#fff"/></svg>`;
+  if(DB.settings.background){ document.body.style.backgroundImage=`url(${DB.settings.background})`; document.body.style.backgroundSize='cover'; document.body.style.backgroundPosition='center'; } else document.body.style.backgroundImage='';
+
+  const isAdmin = currentUser && currentUser.role==='Admin';
+  const isUser = currentUser && currentUser.role !== 'Admin';
+
+  document.getElementById('adminHamburger').style.display = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('userHamburger').style.display = isUser ? 'inline-block' : 'none';
+
+  if(currentUser){ document.getElementById('openLogin').style.display='none'; document.getElementById('openSignup').style.display='none'; document.getElementById('logoutButton').style.display='inline-block'; }
+  else { document.getElementById('openLogin').style.display='inline-block'; document.getElementById('openSignup').style.display='inline-block'; document.getElementById('logoutButton').style.display='none'; }
+
+  if(!currentUser || isAdmin){
+    // admin may toggle
+  } else {
+    sidebar.classList.add('hidden');
+  }
+
+  document.getElementById('sideTitle').textContent = DB.settings.platformName || 'Platform';
+  document.getElementById('sideSub').textContent = currentUser ? currentUser.names : '—';
+  document.getElementById('payStatus').textContent = DB.settings.paymentsEnabled ? 'Enabled' : 'Disabled';
+  document.getElementById('refStatusAdmin').textContent = DB.settings.referralEnabled ? 'Enabled' : 'Disabled';
+  updateInboxBadge();
+  renderSidebarForRole();
+}
+
+/* create / ensure referral code */
+function ensureReferralForUserObj(u){
+  if(!u) return;
+  DB = readDB();
+  if(!u.referralCode){
+    let code; do{ code = 'REF_' + Math.random().toString(36).slice(2,7).toUpperCase(); } while(DB.users.some(x=>x.referralCode===code));
+    u.referralCode = code; u.referred = u.referred || [];
+    writeDB(DB);
+  }
+}
+
+/* build the sidebar according to role */
+function renderSidebarForRole(){
+  navArea.innerHTML = ''; refSidebar.innerHTML = '';
+  const isAdmin = currentUser && currentUser.role==='Admin';
+  if(isAdmin){
+    const items = [
+      {id:'navDashboard', txt:'Dashboard', svg:`<svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm10 8h8V3h-8v18z" fill="#fff"/></svg>`},
+      {id:'navProducts', txt:'Products', svg:`<svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z" fill="#fff"/></svg>`},
+      {id:'navInbox', txt:'Inbox', svg:`<svg viewBox="0 0 24 24"><path d="M4 4h16v12H4l-4 4v-4H4z" fill="#fff"/></svg>`},
+      {id:'navUsers', txt:'Users', svg:`<svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4 0-7 2-7 4v2h14v-2c0-2-3-4-7-4z" fill="#fff"/></svg>`},
+      {id:'navAdminConsole', txt:'Admin Console', svg:`<svg viewBox="0 0 24 24"><path d="M12 1l3 5h6l-4.8 4.2L18 21l-6-4-6 4 1.8-10.8L3 6h6z" fill="#fff"/></svg>`},
+      {id:'navBroadcast', txt:'Broadcast', svg:`<svg viewBox="0 0 24 24"><path d="M4 4h12v4H4zM4 10h18v4H4zM4 16h10v4H4z" fill="#fff"/></svg>`},
+      {id:'navPayments', txt:'Payments', svg:`<svg viewBox="0 0 24 24"><path d="M2 7h20v10H2z" fill="#fff"/></svg>`},
+      {id:'navTraffic', txt:'Traffic', svg:`<svg viewBox="0 0 24 24"><path d="M3 3v18h18" stroke="#fff" stroke-width="2" fill="none"/><path d="M7 14l4-6 4 8 4-4" stroke="#fff" stroke-width="2" fill="none"/></svg>`},
+      {id:'navPrint', txt:'Print Users', svg:`<svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 13h12v8H6z" stroke="#fff" stroke-width="2" fill="none"/></svg>`}
+    ];
+    items.forEach(it=>{ const d=document.createElement('div'); d.className='side-item'; d.id=it.id; d.innerHTML = it.svg + `<div>${it.txt}</div>`; navArea.appendChild(d); });
+  } else if(currentUser){
+    const isFarmer = currentUser.role==='Farmer';
+    const items = [];
+    items.push({id:'uDashboard', txt:'Dashboard', svg:`<svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm10 8h8V3h-8v18z" fill="#fff"/></svg>`});
+    if(isFarmer) items.push({id:'uListProducts', txt:'List Product', svg:`<svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z" fill="#fff"/></svg>`});
+    items.push({id:'uProfile', txt:'Profile', svg:`<svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zM2 20c0-2.67 5.33-4 8-4s8 1.33 8 4v2H2v-2z" fill="#fff"/></svg>`});
+    items.push({id:'uInbox', txt:'Inbox', svg:`<svg viewBox="0 0 24 24"><path d="M4 4h16v12H4l-4 4v-4H4z" fill="#fff"/></svg>`});
+    items.push({id:'uSuggestions', txt:'Suggestions', svg:`<svg viewBox="0 0 24 24"><path d="M11 9h2v2h-2zM11 13h2v4h-2z" fill="#fff"/></svg>`});
+    items.push({id:'uReferral', txt:'Referral', svg:`<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zM8 12h8" fill="#fff"/></svg>`});
+    items.push({id:'uLogout', txt:'Logout', svg:`<svg viewBox="0 0 24 24"><path d="M16 13v-2H7V7l-5 5 5 5v-4z" fill="#fff"/></svg>`});
+    items.forEach(it=>{ const d=document.createElement('div'); d.className='side-item'; d.id=it.id; d.innerHTML = it.svg + `<div>${it.txt}</div>`; navArea.appendChild(d); });
+
+    if(DB.settings.referralEnabled){
+      const me = DB.users.find(u=>u.id===currentUser.id);
+      ensureReferralForUserObj(me);
+      refSidebar.innerHTML = `<label style="font-weight:800">Referral Code</label><div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+        <input value="${me.referralCode}" disabled style="background:transparent;border:1px solid var(--glass-border);padding:8px;border-radius:8px;color:var(--white)">
+        <button id="copyRefSidebar" class="btn small">Copy</button>
+      </div><div style="margin-top:8px" id="sidebarRewardStatus"></div>`;
+      document.getElementById('copyRefSidebar').onclick = ()=>{ navigator.clipboard?.writeText(me.referralCode); toast('success','Referral code copied'); };
+      if(me.rewardActiveUntil && new Date(me.rewardActiveUntil).getTime() > Date.now()){
+        const exp = new Date(me.rewardActiveUntil);
+        document.getElementById('sidebarRewardStatus').innerHTML = `<div class="reward-badge" title="Referral reward active until ${exp.toLocaleString()}">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2l1.9 4.85L19 8l-3.5 3.02L16 16l-4-2-4 2 .5-4.98L5 8l5.1-1.15z" fill="#3a2a00"/></svg>
+          <span>Referral reward active — expires ${exp.toLocaleString()}</span>
+        </div>`;
+      }
     }
+  } else {
+    navArea.innerHTML = `<div class="side-item" id="pubHome"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="#fff"/></svg><div>Home</div></div>`;
+  }
+
+  bindNavActions();
+}
+
+/* bind sidebar buttons to views/actions */
+function bindNavActions(){
+  document.getElementById('navProducts')?.addEventListener('click', ()=>{ showView('viewHome'); renderProducts(); });
+  document.getElementById('navDashboard')?.addEventListener('click', ()=>{ showView('viewHome'); renderProducts(); });
+  document.getElementById('navInbox')?.addEventListener('click', ()=>{ showView('viewChat'); loadContacts(); renderInbox(); });
+  document.getElementById('navUsers')?.addEventListener('click', ()=>{ showView('viewProfile'); if(currentUser) populateProfile(); });
+  document.getElementById('navAdminConsole')?.addEventListener('click', ()=>{ showView('adminConsole'); renderAdminPending(); renderAdminReports(); setupHeaderControls(); });
+  document.getElementById('navBroadcast')?.addEventListener('click', ()=>{ showView('adminConsole'); document.getElementById('admBroadcastSub').focus(); });
+  document.getElementById('navPayments')?.addEventListener('click', ()=>{ showView('adminConsole'); });
+  document.getElementById('navTraffic')?.addEventListener('click', ()=>{ showView('trafficSection'); renderTrafficChart(); });
+  document.getElementById('navPrint')?.addEventListener('click', ()=> printUsersList());
+
+  document.getElementById('uDashboard')?.addEventListener('click', ()=>{ showView('viewHome'); renderProducts(); });
+  document.getElementById('uListProducts')?.addEventListener('click', ()=>{ showView('viewPost'); });
+  document.getElementById('uProfile')?.addEventListener('click', ()=>{ showView('viewProfile'); populateProfile(); });
+  document.getElementById('uInbox')?.addEventListener('click', ()=>{ showView('viewChat'); loadContacts(); renderInbox(); });
+  document.getElementById('uSuggestions')?.addEventListener('click', ()=>{ showView('viewSuggestions'); });
+  document.getElementById('uReferral')?.addEventListener('click', ()=>{ showView('viewReferral'); renderReferral(); });
+  document.getElementById('uLogout')?.addEventListener('click', ()=> logout());
+
+  document.getElementById('pubHome')?.addEventListener('click', ()=>{ showView('viewHome'); renderProducts(); });
+}
+
+/* ----------------- Authentication & Registration ----------------- */
+document.getElementById('btnRegister').addEventListener('click', ()=>{
+  const username = document.getElementById('regUser').value.trim();
+  const names = document.getElementById('regNames').value.trim();
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const phone = document.getElementById('regPhone').value.trim();
+  const county = document.getElementById('regCounty').value.trim();
+  const role = document.getElementById('regRole').value;
+  const pw1 = document.getElementById('regPw1').value;
+  const pw2 = document.getElementById('regPw2').value;
+  const pin = document.getElementById('regPin').value.trim();
+  const referral = document.getElementById('regReferral').value.trim();
+  if(!username||!names||!email||!phone||!county||!pw1||!pw2||!pin){ toast('error','Please complete all registration fields.'); return; }
+  if(pw1!==pw2){ toast('error','Passwords do not match.'); return; }
+  if(pin.length!==4 || pin==='1234' || (/^(.)\1{3}$/.test(pin))){ toast('error','PIN invalid.'); return; }
+  DB = readDB();
+  if(DB.users.some(u=>u.username===username || u.email===email)){ toast('error','Username or email already exists.'); return; }
+  const newUser = { id:uid('u'), username, names, email, phone, county, role, password:btoa(pw1), approved:false, banned:false, avatar:'', createdAt:now(), paidUntil:null, trialExpires:null, privileges:[], referralCode:null, referred:[], rewardActiveUntil:null };
+  DB.users.push(newUser);
+
+  if(referral && DB.settings.referralEnabled){
+    const refUser = DB.users.find(u=>u.referralCode===referral);
+    if(refUser){
+      refUser.referred = refUser.referred || [];
+      refUser.referred.push(newUser.id);
+      DB.messages.push({ id:uid('m'), from:'system', to:refUser.id, subject:'Referral used', body:`Your referral code was used by ${names}. Total referrals: ${refUser.referred.length}`, time:now(), read:false });
+      const uniqueCount = Array.from(new Set(refUser.referred)).length;
+      if(uniqueCount >= 3 && (!refUser.rewardActiveUntil || new Date(refUser.rewardActiveUntil).getTime() < Date.now())){
+        refUser.rewardActiveUntil = new Date(Date.now()+24*3600*1000).toISOString();
+        DB.messages.push({ id:uid('m'), from:'system', to:refUser.id, subject:'Referral reward', body:`You earned a 24-hour free access for 3 referrals.`, time:now(), read:false });
+      }
+    }
+  }
+
+  writeDB(DB);
+  toast('success','Registration submitted. Administrator will review and approve.');
+  showView('viewLogin');
 });
 
-// Add a new course
-function addCourse() {
-    const code = document.getElementById('courseCode').value.trim();
-    const title = document.getElementById('courseTitle').value.trim();
-    const day = document.getElementById('day').value;
-    const time = document.getElementById('time').value;
+document.getElementById('btnLogin').addEventListener('click', ()=>{
+  const inpt = document.getElementById('loginInput').value.trim();
+  const pw = document.getElementById('loginPass').value;
+  DB = readDB();
+  let user = DB.users.find(u=>u.username===inpt || u.email===inpt.toLowerCase());
+  if(!user && inpt==='admin') user = DB.users.find(u=>u.role==='Admin');
+  if(!user){ toast('error','Invalid credentials.'); return; }
+  if(user.password !== btoa(pw)){ toast('error','Invalid credentials.'); return; }
+  if(!user.approved){ toast('error','Account awaiting administrative approval.'); return; }
+  if(user.banned){ toast('error','Account suspended.'); return; }
 
-    if (!code || !title || !day || !time) return alert("Please fill all fields.");
+  DB.loginLogs.push({ id:uid('log'), userId:user.id, time:now() });
+  if(!user.trialExpires) user.trialExpires = new Date(Date.now()+24*3600*1000).toISOString();
+  writeDB(DB);
 
-    const row = tableBody.insertRow();
-    row.innerHTML = `
-        <td>${code}</td>
-        <td>${title}</td>
-        <td>${day}</td>
-        <td>${time}</td>
-        <td><button onclick="deleteRow(this)" style="background:#dc3545;color:white;"><i class='fa-solid fa-trash'></i></button></td>
-    `;
+  token = btoa(user.id+'|'+Date.now());
+  currentUser = { id:user.id, username:user.username, names:user.names, role:user.role, avatar:user.avatar||'', email:user.email, phone:user.phone||'' };
+  localStorage.setItem('fc_token', token); localStorage.setItem('fc_user', JSON.stringify(currentUser));
+  toast('success','Login successful. Welcome, ' + user.names + '.');
+  refreshUI();
+  showView('viewHome');
+  renderProducts();
+  renderInbox();
+});
 
-    saveTableData(); // Save after adding
+document.getElementById('openLogin').addEventListener('click', ()=> showView('viewLogin'));
+document.getElementById('openSignup').addEventListener('click', ()=> showView('viewSignup'));
+document.getElementById('btnToSignup').addEventListener('click', ()=> showView('viewSignup'));
+document.getElementById('btnToLogin').addEventListener('click', ()=> showView('viewLogin'));
 
-    // Reset fields
-    document.getElementById('courseCode').value = "";
-    document.getElementById('courseTitle').value = "";
-    document.getElementById('day').value = "";
-    document.getElementById('time').value = "";
+function logout(){
+  currentUser = null;
+  localStorage.removeItem('fc_user');
+  localStorage.removeItem('fc_token');
+  toast('success','Logged out');
+  document.getElementById('userHamburger').style.display = 'none';
+  document.getElementById('adminHamburger').style.display = 'none';
+  sidebar.classList.add('hidden');
+  refreshUI();
+  showView('viewLogin');
+}
+document.getElementById('logoutButton').addEventListener('click', ()=> logout());
+
+/* Sidebar toggles */
+document.getElementById('userHamburger').addEventListener('click', ()=> {
+  if(!currentUser || currentUser.role==='Admin'){ toast('error','Access denied'); return; }
+  sidebar.classList.toggle('hidden');
+});
+document.getElementById('adminHamburger').addEventListener('click', ()=> {
+  if(!currentUser || currentUser.role!=='Admin'){ toast('error','Administrator only.'); return; }
+  sidebar.classList.toggle('hidden');
+});
+document.getElementById('closeSidebar').addEventListener('click', ()=> sidebar.classList.add('hidden'));
+
+/* ----------------- Products & Postings ----------------- */
+/* Updated renderProducts: approved products show Tag + Chat for logged-in users (buyers/farmers) */
+async function renderProducts(){
+  DB = readDB();
+  const area = document.getElementById('productGrid'); area.innerHTML = '';
+  const list = DB.products.slice().sort((a,b)=> new Date(b.createdAt)-new Date(a.createdAt));
+  list.forEach(p=>{
+    const isOwner = currentUser && currentUser.id===p.ownerId;
+    const isAdmin = currentUser && currentUser.role==='Admin';
+    // visibility rule: if not approved and not owner/admin => skip
+    if(!p.approved && !(isOwner || isAdmin)) return;
+    const owner = DB.users.find(u=>u.id===p.ownerId) || {};
+    const el = document.createElement('div'); el.className='product';
+    el.innerHTML = `<img src="${p.image||''}" alt=""><div style="margin-top:8px"><strong>${p.name}</strong><div class="muted">${p.category} • ${p.location}</div></div>
+      <div class="muted" style="margin-top:8px">KSh ${p.priceKsh} • ${p.quantity} • ${formatPostTime(p.createdAt)}</div>`;
+    const actions = document.createElement('div'); actions.style.marginTop='8px'; actions.style.display='flex';
+    // If product is approved -> allow Tag and Chat for any logged-in non-banned user (and owner too)
+    if(p.approved){
+      const tagBtn = document.createElement('button'); tagBtn.className='btn small'; tagBtn.style.marginRight='8px'; tagBtn.textContent='Tag (Interest)';
+      tagBtn.onclick = ()=> {
+        if(!currentUser) return toast('error','Please login to tag or buy.');
+        // create a message to notify seller and add a tag record
+        DB.messages.push({ id:uid('m'), from:currentUser.id, to:p.ownerId, subject:`Interest in ${p.name}`, body:`${currentUser.names || currentUser.username} is interested in "${p.name}". Contact: ${currentUser.phone||currentUser.email||''}`, time:now(), read:false });
+        // also add a notification message to owner
+        writeDB(DB);
+        toast('success','Seller notified of your interest. Message sent to inbox.');
+        renderInbox();
+        // optionally open chat
+        openChat(p.ownerId);
+      };
+      actions.appendChild(tagBtn);
+
+      const chatBtn = document.createElement('button'); chatBtn.className='btn secondary small'; chatBtn.textContent='Chat Seller';
+      chatBtn.onclick = ()=> {
+        if(!currentUser) return toast('error','Please login to chat.');
+        openChat(p.ownerId);
+        showView('viewChat');
+      };
+      actions.appendChild(chatBtn);
+    } else {
+      // pending item - inform non-owner
+      const pendingNote = document.createElement('div'); pendingNote.className='muted'; pendingNote.textContent = 'Pending admin approval';
+      actions.appendChild(pendingNote);
+    }
+
+    // Owner actions (edit/delete)
+    if(currentUser && isOwner){
+      const edit = document.createElement('button'); edit.className='btn secondary small'; edit.textContent='Edit'; edit.style.marginLeft='8px';
+      edit.onclick = ()=> {
+        showView('viewPost');
+        document.getElementById('prodCategory').value = p.category;
+        document.getElementById('prodName').value = p.name;
+        document.getElementById('prodLocation').value = p.location;
+        document.getElementById('prodQuantity').value = p.quantity;
+        document.getElementById('prodPrice').value = p.priceKsh;
+        document.getElementById('btnPost').dataset.edit = p.id;
+        toast('success','Edit fields and press Submit to save changes.');
+      };
+      const del = document.createElement('button'); del.className='btn secondary small'; del.textContent='Delete';
+      del.onclick = async ()=>{
+        const ok = await showConfirm('Delete product', `Delete "${p.name}"? This cannot be undone.`);
+        if(!ok) return toast('error','Delete cancelled.');
+        DB.products = DB.products.filter(pp=>pp.id!==p.id); writeDB(DB); toast('success','Product deleted.'); renderProducts();
+      };
+      actions.appendChild(edit); actions.appendChild(del);
+    }
+
+    el.appendChild(actions);
+    area.appendChild(el);
+  });
 }
 
-// Delete a row and update local storage
-function deleteRow(button) {
-    button.closest('tr').remove();
-    saveTableData();
+document.getElementById('btnPost').addEventListener('click', async ()=>{
+  if(!currentUser) return toast('error','Please login to post.');
+  if(currentUser.role!=='Farmer' && currentUser.role!=='Admin') return toast('error','Only Farmers may post.');
+  DB = readDB();
+  const me = DB.users.find(u=>u.id===currentUser.id);
+  const nowTs = Date.now();
+  const paidUntil = me.paidUntil ? new Date(me.paidUntil).getTime() : 0;
+  const trialExpires = me.trialExpires ? new Date(me.trialExpires).getTime() : 0;
+  const rewardActive = me.rewardActiveUntil && new Date(me.rewardActiveUntil).getTime() > Date.now();
+  if(me.role!=='Admin' && !(paidUntil>nowTs || trialExpires>nowTs || rewardActive)) return toast('error','Please pay or have active trial/reward to post.');
+  const f = document.getElementById('prodImage').files[0]; const image = f ? await readFileAsDataURL(f) : '';
+  const category = document.getElementById('prodCategory').value.trim();
+  const name = document.getElementById('prodName').value.trim();
+  const location = document.getElementById('prodLocation').value.trim();
+  const quantity = document.getElementById('prodQuantity').value.trim();
+  const priceKsh = Number(document.getElementById('prodPrice').value);
+  if(!name || !priceKsh) return toast('error','Provide product name and price.');
+  const editId = document.getElementById('btnPost').dataset.edit;
+  if(editId){
+    const p = DB.products.find(x=>x.id===editId);
+    if(p){ p.category=category; p.name=name; p.location=location; p.quantity=quantity; p.priceKsh=priceKsh; if(image) p.image=image; p.approved=false; p.createdAt=now(); writeDB(DB); toast('success','Product updated and re-submitted for approval'); delete document.getElementById('btnPost').dataset.edit; renderProducts(); showView('viewHome'); return; }
+  }
+  DB.products.push({ id:uid('p'), ownerId:currentUser.id, category, name, location, quantity, priceKsh, image, approved: currentUser.role==='Admin', createdAt:now() });
+  writeDB(DB);
+  toast('success','Product submitted for administrative approval.');
+  renderProducts();
+});
+
+/* ----------------- Chat & Inbox ----------------- */
+function loadContacts(q=''){
+  if(!currentUser) return;
+  DB = readDB();
+  const area = document.getElementById('contactsArea'); area.innerHTML = '';
+  DB.users.filter(u=>u.approved && u.id!==currentUser.id).filter(u=>u.names.toLowerCase().includes((q||'').toLowerCase()) || (u.phone||'').includes(q)).forEach(u=>{
+    const el = document.createElement('div'); el.style.display='flex'; el.style.alignItems='center'; el.style.gap='8px'; el.style.padding='8px'; el.style.cursor='pointer';
+    el.innerHTML = `<div style="width:48px;height:48px;border-radius:10px;background:var(--glass);overflow:hidden"><img src="${u.avatar||''}" style="width:100%;height:100%;object-fit:cover"></div><div><strong>${u.names}</strong><div class="muted">${u.phone||u.email||''}</div></div>`;
+    el.onclick = ()=> openChat(u.id);
+    area.appendChild(el);
+  });
+}
+document.getElementById('contactSearch').addEventListener('input',(e)=> loadContacts(e.target.value));
+
+function openChat(userId){
+  if(!currentUser) return toast('error','Please login to chat.');
+  DB = readDB(); const other = DB.users.find(u=>u.id===userId); if(!other) return toast('error','Contact not found.');
+  activeChat = userId; document.getElementById('chatWith').textContent = other.names; document.getElementById('chatWithInfo').textContent = other.phone || other.email || '';
+  renderMessages(userId); showView('viewChat');
+}
+function renderMessages(otherId){
+  const area = document.getElementById('messages'); area.innerHTML = '';
+  DB = readDB();
+  const msgs = DB.messages.filter(m => (m.from===currentUser.id && m.to===otherId) || (m.from===otherId && m.to===currentUser.id));
+  msgs.sort((a,b)=> new Date(a.time)-new Date(b.time));
+  msgs.forEach(m=>{
+    const el = document.createElement('div'); el.className='msg ' + (m.from===currentUser.id ? 'me' : 'them');
+    el.innerHTML = `<div>${m.body}</div><div class="timestamp">${formatTime(m.time)}</div>`;
+    area.appendChild(el);
+    if(m.to===currentUser.id) m.read=true;
+  });
+  writeDB(DB);
+  area.scrollTop = area.scrollHeight;
+  updateInboxBadge();
+}
+document.getElementById('btnSendMsg').addEventListener('click', ()=>{
+  if(!currentUser) return toast('error','Please login to send messages.');
+  const text = document.getElementById('msgInput').value.trim();
+  if(!text) return toast('error','Message cannot be empty.');
+  if(!activeChat) return toast('error','Select a contact.');
+  DB.messages.push({ id:uid('m'), from:currentUser.id, to:activeChat, subject:'', body:text, time:now(), read:false });
+  writeDB(DB); document.getElementById('msgInput').value=''; renderMessages(activeChat); toast('success','Message sent.');
+});
+
+function updateInboxBadge(){
+  if(!currentUser) return;
+  DB = readDB();
+  const n = DB.messages.filter(m=>m.to===currentUser.id && !m.read).length;
+  const items = document.querySelectorAll('.side-item');
+  items.forEach(it=>{
+    if(it.textContent.includes('Inbox')){
+      const badge = it.querySelector('.badge');
+      if(n>0){ if(!badge){ const b=document.createElement('span'); b.className='badge'; b.textContent=n; it.appendChild(b); } else badge.textContent = n; }
+      else if(badge) badge.remove();
+    }
+  });
 }
 
-// Save all current data to local storage
-function saveTableData() {
-    const rows = Array.from(tableBody.querySelectorAll('tr')).map(r => ({
-        code: r.cells[0].textContent,
-        title: r.cells[1].textContent,
-        day: r.cells[2].textContent,
-        time: r.cells[3].textContent
-    }));
-    localStorage.setItem('timetableData', JSON.stringify(rows));
+/* ----------------- Admin: Pending Approvals & Reports (with one-time approve logic) ----------------- */
+function renderAdminPending(){
+  DB = readDB();
+  const area = document.getElementById('admPendingList'); area.innerHTML = '';
+  const pendingUsers = DB.users.filter(u=>!u.approved);
+  if(pendingUsers.length){
+    const h = document.createElement('div'); h.innerHTML = '<strong>Pending Users</strong>'; area.appendChild(h);
+    pendingUsers.forEach(u=>{
+      const el = document.createElement('div'); el.style.padding='8px'; el.style.borderBottom='1px solid rgba(255,255,255,0.03)';
+      el.innerHTML = `<div><strong>${u.names}</strong> <div class="muted">${u.email} • ${u.username} • ${u.role}</div></div>`;
+      const approveBtn=document.createElement('button'); approveBtn.className='btn small'; approveBtn.textContent='Approve';
+      approveBtn.onclick = ()=>{ u.approved = true; if(!u.trialExpires) u.trialExpires = new Date(Date.now()+24*3600*1000).toISOString(); writeDB(DB); toast('success','User approved.'); renderAdminPending(); };
+      const rejectBtn=document.createElement('button'); rejectBtn.className='btn secondary small'; rejectBtn.style.marginLeft='8px'; rejectBtn.textContent='Reject';
+      rejectBtn.onclick = async ()=>{ const ok = await showConfirm('Reject registration', `Reject and remove registration for ${u.names}?`); if(!ok) return toast('error','Reject cancelled.'); DB.users = DB.users.filter(x=>x.id!==u.id); writeDB(DB); toast('success','Registration rejected and removed.'); renderAdminPending(); };
+      el.appendChild(approveBtn); el.appendChild(rejectBtn); area.appendChild(el);
+    });
+  } else area.innerHTML = '<div class="muted">No pending users</div>';
+
+  const pendingProducts = DB.products.filter(p=>!p.approved);
+  if(pendingProducts.length){
+    const h2=document.createElement('div'); h2.innerHTML='<strong style="margin-top:8px">Pending Products</strong>'; area.appendChild(h2);
+    pendingProducts.forEach(p=>{
+      const owner = DB.users.find(u=>u.id===p.ownerId) || {};
+      const el=document.createElement('div'); el.style.padding='8px'; el.style.borderBottom='1px solid rgba(255,255,255,0.03)';
+      el.innerHTML = `<div><strong>${p.name}</strong><div class="muted">${p.category} • ${p.location} • Seller: ${owner.names||'—'}</div></div>`;
+      const approveBtn=document.createElement('button'); approveBtn.className='btn small'; approveBtn.textContent='Approve';
+      const rejectBtn=document.createElement('button'); rejectBtn.className='btn secondary small'; rejectBtn.style.marginLeft='8px'; rejectBtn.textContent='Reject';
+      const deleteBtn=document.createElement('button'); deleteBtn.className='btn confirm-danger small'; deleteBtn.style.marginLeft='8px'; deleteBtn.textContent='Delete';
+      approveBtn.onclick = async ()=>{
+        p.approved = true;
+        DB.messages.push({ id:uid('m'), from:currentUser?currentUser.id:'system', to:p.ownerId, subject:'Product Approved', body:`Your product "${p.name}" has been approved and is now visible to buyers.`, time:now(), read:false });
+        writeDB(DB);
+        toast('success','Product approved. It is now visible to users.');
+        renderAdminPending();
+      };
+      rejectBtn.onclick = async () => { const ok = await showConfirm('Reject product', `Reject and remove "${p.name}"?`); if(!ok) return toast('error','Reject cancelled.'); DB.products = DB.products.filter(x=>x.id!==p.id); writeDB(DB); toast('success','Product rejected and removed.'); renderAdminPending(); };
+      deleteBtn.onclick = async ()=>{ const ok = await showConfirm('Delete product', `Delete "${p.name}" permanently?`); if(!ok) return toast('error','Delete cancelled.'); DB.products = DB.products.filter(pp=>pp.id!==p.id); writeDB(DB); toast('success','Product deleted.'); renderAdminPending(); };
+      el.appendChild(approveBtn); el.appendChild(rejectBtn); el.appendChild(deleteBtn);
+      area.appendChild(el);
+    });
+  }
 }
 
-// Generate preview window
-function previewTable() {
-    const tableClone = document.querySelector('#timetable').cloneNode(true);
-    tableClone.querySelectorAll('th:last-child, td:last-child').forEach(el => el.remove());
-    const logoSrc = logoPreview.src || '';
-
-    const previewWin = window.open('', '_blank');
-    previewWin.document.write(`
-        <html>
-        <head>
-            <title>Timetable Preview</title>
-            <style>
-                body {
-                    background-color: #001f3f;
-                    color: black;
-                    font-family: Poppins, sans-serif;
-                    text-align: center;
-                    -webkit-print-color-adjust: exact;
-                    print-color-adjust: exact;
-                    margin: 0;
-                }
-                h2 {
-                    color: black;
-                }
-                table {
-                    width: 80%;
-                    margin: 20px auto;
-                    border-collapse: collapse;
-                    box-shadow: 0 0 10px rgba(255,255,255,0.2);
-                    background: white;
-                    color: black;
-                }
-                th, td {
-                    border: 1px solid #999;
-                    padding: 10px;
-                }
-                th {
-                    background-color: #f0f0f0;
-                }
-                img {
-                    width: 120px;
-                    border-radius: 10px;
-                    border: 2px solid black;
-                    margin-top: 15px;
-                    background: none;
-                    object-fit: contain;
-                }
-                #printBtn {
-                    margin: 20px;
-                    background: white;
-                    color: #001f3f;
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    font-weight: bold;
-                }
-                #printBtn:hover {
-                    background: #0d6efd;
-                    color: white;
-                }
-                @media print {
-                    #printBtn { display: none !important; }
-                }
-            </style>
-        </head>
-        <body>
-            <img src="${logoSrc}" alt="Logo">
-            <h2>Personal Timetable</h2>
-            ${tableClone.outerHTML}
-            <button id="printBtn" onclick="window.print()"><i class='fa-solid fa-print'></i> Print Timetable</button>
-        </body>
-        </html>
-    `);
-    previewWin.document.close();
+/* Admin reports preview */
+function renderAdminReports(){
+  DB = readDB();
+  const area = document.getElementById('admReportsPreview'); area.innerHTML = '';
+  const items = DB.reports.slice().reverse();
+  if(items.length===0){ area.innerHTML = '<div class="muted">No reports</div>'; return; }
+  items.forEach(r=>{
+    const reporter = DB.users.find(u=>u.id===r.from) || {};
+    const el=document.createElement('div'); el.style.padding='8px'; el.style.borderBottom='1px solid rgba(255,255,255,0.03)';
+    el.innerHTML = `<div><strong>${r.aboutLabel}</strong><div class="muted">reported by ${reporter.names||'—'} • ${formatTime(r.time)}</div></div><div style="margin-top:8px">${r.reason}</div>`;
+    area.appendChild(el);
+  });
 }
+
+/* ----------------- Admin user actions (create, generate password, ban/unban) ----------------- */
+document.getElementById('admAddUser').addEventListener('click', ()=>{
+  if(!currentUser || currentUser.role!=='Admin') return toast('error','Administrator credentials required.');
+  DB = readDB();
+  const username=document.getElementById('admNewUser').value.trim();
+  const names=document.getElementById('admNewNames').value.trim();
+  const email=document.getElementById('admNewEmail').value.trim().toLowerCase();
+  const role=document.getElementById('admNewRole').value;
+  if(!username||!names||!email) return toast('error','Username, names and email required.');
+  if(DB.users.some(u=>u.username===username || u.email===email)) return toast('error','User already exists.');
+  const pw = generatePassword();
+  const user = { id:uid('u'), username, names, email, phone:'', county:'', role, password:btoa(pw), approved:true, banned:false, avatar:'', createdAt:now(), paidUntil:null, trialExpires:null, privileges:[], referralCode:null, referred:[], rewardActiveUntil:null };
+  DB.users.push(user);
+  DB.messages.push({ id:uid('m'), from:currentUser.id, to:user.id, subject:'Account Created', body:`Your account was created by Administrator.\nUsername: ${username}\nPassword: ${pw}\nPlease change your password upon login.`, time:now(), read:false });
+  writeDB(DB);
+  toast('success','User created and credentials delivered to Inbox.');
+  document.getElementById('admNewUser').value=''; document.getElementById('admNewNames').value=''; document.getElementById('admNewEmail').value='';
+  renderAdminPending(); renderAdminReports();
+
+  if(user.phone && user.phone.trim()){
+    const text = encodeURIComponent(`FarmConnect - Account created\nUsername: ${username}\nPassword: ${pw}\nPlease change your password after login.`);
+    const phone = encodeURIComponent(user.phone.replace(/\s+/g,''));
+    window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${text}`, '_blank');
+  } else {
+    const mailto = `mailto:${encodeURIComponent(user.email)}?subject=${encodeURIComponent('FarmConnect account created')}&body=${encodeURIComponent('Username: '+username+'\\nPassword: '+pw+'\\nPlease change your password after login.')}`;
+    window.open(mailto, '_blank');
+  }
+});
+
+document.getElementById('generatePasswordForUser').addEventListener('click', ()=>{
+  if(!currentUser || currentUser.role!=='Admin') return toast('error','Administrator credentials required.');
+  const identifier = document.getElementById('manageUsername').value.trim();
+  if(!identifier) return toast('error','Enter username or email.');
+  DB = readDB(); const user = DB.users.find(u=>u.username===identifier || u.email===identifier);
+  if(!user) return toast('error','User not found.');
+  const pw = generatePassword(); user.password = btoa(pw); writeDB(DB);
+  DB.messages.push({ id:uid('m'), from:currentUser.id, to:user.id, subject:'Password Reset', body:`An administrator has issued a new password for your account.\nUsername: ${user.username}\nPassword: ${pw}\nPlease change your password after login.`, time:now(), read:false });
+  writeDB(DB);
+  toast('success','New password generated and delivered to user inbox.');
+  if(user.phone && user.phone.trim()){
+    const text = encodeURIComponent(`FarmConnect - New password\nUsername: ${user.username}\nPassword: ${pw}\nPlease change your password after login.`);
+    const phone = encodeURIComponent(user.phone.replace(/\s+/g,''));
+    window.open(`https://api.whatsapp.com/send?phone=${phone}&text=${text}`, '_blank');
+  } else {
+    window.open(`mailto:${encodeURIComponent(user.email)}?subject=${encodeURIComponent('FarmConnect - New password')}&body=${encodeURIComponent('Username: '+user.username+'\\nPassword: '+pw+'\\nPlease change your password after login.')}`, '_blank');
+  }
+});
+
+document.getElementById('banUser').addEventListener('click', ()=>{ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); const id=document.getElementById('manageUsername').value.trim(); if(!id) return toast('error','Provide username or email'); DB = readDB(); const user = DB.users.find(u=>u.username===id || u.email===id); if(!user) return toast('error','User not found'); user.banned = true; writeDB(DB); toast('success',`User ${user.username} suspended`); });
+document.getElementById('unbanUser').addEventListener('click', ()=>{ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); const id=document.getElementById('manageUsername').value.trim(); if(!id) return toast('error','Provide username or email'); DB = readDB(); const user = DB.users.find(u=>u.username===id || u.email===id); if(!user) return toast('error','User not found'); user.banned = false; writeDB(DB); toast('success',`User ${user.username} reinstated`); });
+
+/* Broadcast */
+document.getElementById('admSendBroadcast').addEventListener('click', ()=>{ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); const s=document.getElementById('admBroadcastSub').value.trim(); const b=document.getElementById('admBroadcastBody').value.trim(); if(!s||!b) return toast('error','Subject and message required'); DB = readDB(); DB.users.filter(u=>u.approved).forEach(u=> DB.messages.push({ id:uid('m'), from:currentUser.id, to:u.id, subject:s, body:b, time:now(), read:false })); writeDB(DB); toast('success','Broadcast delivered to all users'); document.getElementById('admBroadcastSub').value=''; document.getElementById('admBroadcastBody').value=''; updateInboxBadge(); });
+
+/* contact & terms */
+document.getElementById('btnSaveContact').addEventListener('click', ()=>{ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); DB = readDB(); DB.settings.contact = document.getElementById('platformContact').value.trim(); writeDB(DB); toast('success','Contact saved'); });
+document.getElementById('btnSaveTnC').addEventListener('click', ()=>{ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); DB = readDB(); DB.settings.terms = document.getElementById('platformTnC').value.trim(); writeDB(DB); toast('success','Terms saved'); });
+
+/* admin quick add */
+document.getElementById('admAddAdminBtn').addEventListener('click', ()=>{ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); const name=prompt('Name for new admin:'); if(!name) return; const username=prompt('Username for new admin:'); if(!username) return; DB = readDB(); if(DB.users.some(u=>u.username===username)) return toast('error','Username exists'); const pw=generatePassword(); const newAdmin={ id:uid('u'), username, names:name, email:username+'@local', phone:'', county:'', role:'Admin', password:btoa(pw), approved:true, banned:false, avatar:'', createdAt:now(), privileges:['all'], referralCode:null, referred:[], rewardActiveUntil:null }; DB.users.push(newAdmin); DB.messages.push({ id:uid('m'), from:currentUser.id, to:newAdmin.id, subject:'Administrator Account', body:`You have been created as an Administrator.\nUsername: ${username}\nPassword: ${pw}`, time:now(), read:false }); writeDB(DB); toast('success','Administrator created and credentials sent'); renderAdminPending(); });
+
+/* lists & print */
+document.getElementById('admShowAllUsers').addEventListener('click', ()=>{ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); DB = readDB(); let html=`<h2>${DB.settings.platformName} — Users</h2><table border="1" cellpadding="6" style="border-collapse:collapse"><tr><th>Name</th><th>Username</th><th>Email</th><th>Phone</th><th>Role</th><th>Approved</th><th>Banned</th></tr>`; DB.users.forEach(u=> html+=`<tr><td>${u.names}</td><td>${u.username}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.role}</td><td>${u.approved}</td><td>${u.banned}</td></tr>`); html+='</table>'; const w=window.open('','_blank'); w.document.write(html); w.document.close(); });
+document.getElementById('admShowAllProducts').addEventListener('click', ()=>{ DB = readDB(); let html=`<h2>${DB.settings.platformName} — Products</h2><table border="1" cellpadding="6" style="border-collapse:collapse"><tr><th>Name</th><th>Category</th><th>Owner</th><th>Price</th><th>Approved</th></tr>`; DB.products.forEach(p=>{ const o=DB.users.find(u=>u.id===p.ownerId)||{}; html+=`<tr><td>${p.name}</td><td>${p.category}</td><td>${o.names||''}</td><td>${p.priceKsh}</td><td>${p.approved}</td></tr>`; }); html+='</table>'; const w=window.open('','_blank'); w.document.write(html); w.document.close(); });
+
+document.getElementById('admPrintUsers').addEventListener('click', ()=> printUsersList());
+function printUsersList(){ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); DB = readDB(); let html=`<h2>${DB.settings.platformName} — Users</h2><table border="1" cellpadding="6" style="border-collapse:collapse"><tr><th>Name</th><th>Username</th><th>Email</th><th>Phone</th><th>Role</th><th>Approved</th><th>Banned</th></tr>`; DB.users.forEach(u=> html+=`<tr><td>${u.names}</td><td>${u.username}</td><td>${u.email||''}</td><td>${u.phone||''}</td><td>${u.role}</td><td>${u.approved}</td><td>${u.banned}</td></tr>`); html+='</table>'; const w=window.open('','_blank'); w.document.write(html); w.document.close(); w.print(); }
+
+/* Payments toggle */
+document.getElementById('btnEnablePayments').addEventListener('click', ()=>{ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); DB = readDB(); const key = document.getElementById('paystackPublicKey').value.trim(); if(!key) return toast('error','Enter a Paystack public key.'); DB.settings.paymentsEnabled = true; DB.settings.paystackKey = key; writeDB(DB); toast('success','Payments enabled. Public key saved.'); refreshUI(); });
+document.getElementById('btnDisablePayments').addEventListener('click', ()=>{ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); DB = readDB(); DB.settings.paymentsEnabled=false; DB.settings.paystackKey=''; writeDB(DB); toast('success','Payments disabled.'); refreshUI(); });
+
+/* Referral toggle */
+document.getElementById('btnEnableReferral').addEventListener('click', ()=>{ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); DB = readDB(); DB.settings.referralEnabled = true; writeDB(DB); toast('success','Referral program enabled.'); refreshUI(); });
+document.getElementById('btnDisableReferral').addEventListener('click', ()=>{ if(!currentUser||currentUser.role!=='Admin') return toast('error','Admin only'); DB = readDB(); DB.settings.referralEnabled = false; writeDB(DB); toast('success','Referral program disabled.'); refreshUI(); });
+
+/* Referral rendering */
+function renderReferral(){ if(!currentUser) return; DB = readDB(); const me = DB.users.find(u=>u.id===currentUser.id); ensureReferralForUserObj(me); document.getElementById('myReferralCode').value = me.referralCode || ''; document.getElementById('refList').innerHTML = (me.referred && me.referred.length) ? me.referred.map(id=>{ const u=DB.users.find(x=>x.id===id); return `<div>${u?u.names+' ('+u.username+')':'—'}</div>`; }).join('') : '<div class="muted">No referrals yet</div>'; document.getElementById('refStatus').textContent = me.referred ? `${me.referred.length} referrals` : '0 referrals'; }
+document.getElementById('btnCopyReferral')?.addEventListener('click', ()=>{ const val = document.getElementById('myReferralCode').value; if(val) navigator.clipboard?.writeText(val); toast('success','Referral code copied.'); });
+
+/* Reports */
+document.getElementById('btnSubmitReport').addEventListener('click', ()=>{ if(!currentUser) return toast('error','Please login to report.'); const target = document.getElementById('reportTarget').value.trim(); const reason = document.getElementById('reportReason').value.trim(); if(!target||!reason) return toast('error','Provide target and reason.'); DB = readDB(); const tUser = DB.users.find(u=>u.username===target || u.email===target); DB.reports.push({ id:uid('r'), from:currentUser.id, about: tUser ? tUser.id : null, aboutLabel: tUser ? tUser.names : target, reason, time:now(), reviewed:false }); writeDB(DB); toast('success','Report submitted to administration.'); document.getElementById('reportTarget').value=''; document.getElementById('reportReason').value=''; renderAdminReports(); });
+document.getElementById('btnViewMyReports').addEventListener('click', ()=>{ if(!currentUser) return toast('error','Please login.'); const area=document.getElementById('myReportsArea'); area.innerHTML=''; DB = readDB(); DB.reports.filter(r=>r.from===currentUser.id).forEach(r=>{ const el=document.createElement('div'); el.style.padding='8px'; el.style.borderBottom='1px solid rgba(255,255,255,0.03)'; el.innerHTML=`<div><strong>${r.aboutLabel}</strong><div class="muted">${formatTime(r.time)}</div></div><div style="margin-top:8px">${r.reason}</div>`; area.appendChild(el); }); });
+
+/* Profile upload & save */
+document.getElementById('btnUploadAvatar').addEventListener('click', async ()=>{ if(!currentUser) return toast('error','Please login.'); const f=document.getElementById('avatarFile').files[0]; if(!f) return toast('error','Choose a file.'); const d=await readFileAsDataURL(f); DB = readDB(); const me = DB.users.find(u=>u.id===currentUser.id); me.avatar = d; writeDB(DB); currentUser.avatar=d; localStorage.setItem('fc_user', JSON.stringify(currentUser)); document.getElementById('myAvatar').src=d; toast('success','Profile photo updated.'); });
+document.getElementById('btnSaveProfile').addEventListener('click', ()=>{ if(!currentUser) return toast('error','Please login.'); DB = readDB(); const me = DB.users.find(u=>u.id===currentUser.id); me.names = document.getElementById('profileNames').value.trim(); me.email = document.getElementById('profileEmail').value.trim(); me.phone = document.getElementById('profilePhone').value.trim(); me.county = document.getElementById('profileCounty').value.trim(); const np = document.getElementById('profileNewPw').value.trim(); if(np) me.password = btoa(np); writeDB(DB); currentUser.names = me.names; localStorage.setItem('fc_user', JSON.stringify(currentUser)); toast('success','Profile saved.'); });
+
+/* Admin header controls (logo/background/name) */
+function setupHeaderControls(){
+  const adminCard = document.querySelector('#adminConsole .edit-block');
+  if(!adminCard) return;
+  if(adminCard.dataset.setup) return; adminCard.dataset.setup='1';
+  const controls = document.createElement('div'); controls.style.marginTop='8px';
+  const logoBtn = document.createElement('button'); logoBtn.className='btn small'; logoBtn.textContent='Upload Logo'; logoBtn.style.marginRight='8px';
+  logoBtn.onclick = ()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.onchange = async (e)=>{ const f = e.target.files[0]; if(!f) return; const data = await readFileAsDataURL(f); DB.settings.logo = data; writeDB(DB); refreshUI(); toast('success','Logo uploaded'); }; inp.click(); };
+  const bgBtn = document.createElement('button'); bgBtn.className='btn small secondary'; bgBtn.textContent='Upload Background';
+  bgBtn.onclick = ()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.onchange = async (e)=>{ const f=e.target.files[0]; if(!f) return; const data = await readFileAsDataURL(f); DB.settings.background = data; writeDB(DB); refreshUI(); toast('success','Background uploaded'); }; inp.click(); };
+  const editName = document.createElement('button'); editName.className='btn small'; editName.style.marginLeft='8px'; editName.textContent='Edit Platform Name';
+  editName.onclick = ()=>{ const nm = prompt('Platform name:', DB.settings.platformName); if(nm!==null){ DB.settings.platformName = nm; const cap = prompt('Platform caption:', DB.settings.caption); if(cap!==null) DB.settings.caption = cap; writeDB(DB); refreshUI(); toast('success','Platform name updated'); } };
+  controls.appendChild(logoBtn); controls.appendChild(bgBtn); controls.appendChild(editName); adminCard.appendChild(controls);
+}
+
+/* Traffic chart */
+function aggregateLogins(days=30){
+  DB = readDB();
+  const logs = DB.loginLogs.slice();
+  const end = new Date(); const start = new Date(Date.now() - (days-1)*24*3600*1000);
+  const map = {};
+  for(let d = new Date(start); d<=end; d.setDate(d.getDate()+1)){ map[d.toISOString().slice(0,10)] = new Set(); }
+  logs.forEach(l=>{ const key = l.time.slice(0,10); if(map[key]) map[key].add(l.userId); });
+  const labels = Object.keys(map); const values = labels.map(k=> map[k].size);
+  return { labels, values };
+}
+function renderTrafficChart(){
+  const range = Number(document.getElementById('trafficRange').value || 30);
+  const agg = aggregateLogins(range);
+  const ctx = document.getElementById('trafficChart').getContext('2d');
+  if(trafficChartRef) trafficChartRef.destroy();
+  trafficChartRef = new Chart(ctx, { type:'line', data:{ labels: agg.labels, datasets:[{ label:'Unique logins', data: agg.values, borderColor:'rgba(30,144,255,0.9)', backgroundColor:'rgba(30,144,255,0.14)', fill:true, tension:0.3 }] }, options:{ responsive:true, plugins:{legend:{display:true}} } });
+}
+document.getElementById('trafficRange').onchange = ()=> renderTrafficChart();
+
+/* Helpers */
+function generatePassword(len=10){ const s='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'; let p=''; for(let i=0;i<len;i++) p+=s[Math.floor(Math.random()*s.length)]; return p; }
+function formatTime(iso){ const d=new Date(iso); const diff = Date.now()-d.getTime(); if(diff>7*24*3600*1000) return d.toLocaleString(); return d.toLocaleTimeString() + ' • ' + d.toLocaleDateString(); }
+function formatPostTime(iso){ const d=new Date(iso); const diff = Date.now() - d.getTime(); if(diff > 7*24*3600*1000) return d.toLocaleDateString() + ' ' + d.toLocaleTimeString(); const days = Math.floor(diff/(24*3600*1000)); if(days>=1) return days + 'd ago • ' + d.toLocaleTimeString(); const hrs = Math.floor(diff/(3600*1000)); if(hrs>=1) return hrs+'h ago • '+d.toLocaleTimeString(); const mins = Math.floor(diff/(60*1000)); return mins+'m ago • '+d.toLocaleTimeString(); }
+
+/* Populate profile fields */
+function populateProfile(){ DB = readDB(); if(!currentUser) return; const me = DB.users.find(u=>u.id===currentUser.id); if(!me) return; document.getElementById('profileUser').value = me.username; document.getElementById('profileNames').value = me.names; document.getElementById('profileEmail').value = me.email; document.getElementById('profilePhone').value = me.phone; document.getElementById('profileCounty').value = me.county; document.getElementById('myAvatar').src = me.avatar || ''; }
+
+/* render inbox (badge updates) */
+function renderInbox(){ updateInboxBadge(); }
+
+/* Populate initial UI and boot */
+function boot(){ DB = readDB(); refreshUI(); if(currentUser) showView('viewHome'); else showView('viewLogin'); renderProducts(); renderAdminPending(); renderAdminReports(); setupHeaderControls(); renderTrafficChart(); setInterval(()=> updateInboxBadge(),2000); if(currentUser && currentUser.avatar) document.getElementById('myAvatar').src = currentUser.avatar; }
+boot();
+
+/* expose debug helpers */
+window._farmconnect = { readDB, writeDB, uid, generatePassword };
 </script>
-
 </body>
 </html>
