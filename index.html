@@ -1,122 +1,343 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Personal Timetable Editor</title>
-
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FarmConnect — Farmers to Buyers (Full)</title>
+<!-- Chart.js for traffic analytics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-    body {
-        background-color: #001f3f;
-        color: white;
-        font-family: "Poppins", sans-serif;
-        margin: 0;
-        padding: 0;
-        text-align: center;
-    }
+:root{
+  --bg:#04102a; --panel:#082444; --muted:#9fb5d6; --white:#ffffff;
+  --accent:#1e90ff; --accent2:#1fa36b; --danger:#ef4444; --success:#16a34a;
+  --glass: rgba(255,255,255,0.03); --glass-border: rgba(255,255,255,0.06);
+  --card: rgba(255,255,255,0.02); --edit-blue:#0b70d6; --radius:12px;
+  --confirm-bg: rgba(2,6,23,0.8);
+}
+html{font-family:Inter,Segoe UI,Arial,sans-serif;font-size:clamp(14px,1.6vw,18px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--white);min-height:100vh;display:flex;flex-direction:column}
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(90deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center}
+.logo img{width:100%;height:100%;border-radius:12px;object-fit:cover}
+.title h1{margin:0;font-size:20px;font-weight:800}
+.title p{margin:0;color:var(--muted);font-size:13px}
+.top-actions{display:flex;gap:8px;align-items:center}
+.btn{background:linear-gradient(90deg,var(--accent),var(--accent2));color:var(--white);border:none;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:700}
+.btn.secondary{background:transparent;border:1px solid var(--glass-border)}
+.btn.small{padding:6px 10px;font-size:0.9rem}
+.hamburger{background:transparent;border:1px solid var(--glass-border);padding:8px;border-radius:8px;cursor:pointer}
+.container{max-width:1400px;margin:18px auto;display:flex;gap:16px;padding:0 12px;flex:1;min-height:calc(100vh - 120px)}
+.sidebar{width:300px;background:var(--panel);border-radius:12px;padding:12px;border:1px solid var(--glass-border);display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.sidebar.hidden{display:none}
+.side-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;cursor:pointer;border:1px solid transparent}
+.side-item:hover{background:rgba(255,255,255,0.02)}
+.side-item svg{width:20px;height:20px;fill:#fff}
+.content{flex:1;overflow:auto;padding-bottom:40px}
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:10px;padding:14px;border:1px solid var(--glass-border);margin-bottom:12px}
+label{display:block;font-weight:700;margin-top:10px;color:var(--white)}
+input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid var(--glass-border);background:transparent;color:var(--white);margin-top:6px}
+input::placeholder,textarea::placeholder{color:rgba(255,255,255,0.5)}
+.muted{color:var(--muted);font-size:13px}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.product{border-radius:8px;padding:10px;background:var(--card);border:1px solid var(--glass-border)}
+.product img{width:100%;height:160px;object-fit:cover;border-radius:8px}
+.chat-wrap{display:flex;gap:12px}
+.contacts{width:300px;background:transparent;border-radius:8px;padding:8px;border:1px solid var(--glass-border);max-height:620px;overflow:auto}
+.chatbox{flex:1;background:transparent;border-radius:8px;padding:8px;display:flex;flex-direction:column;max-height:620px}
+.messages{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:72%;padding:10px;border-radius:10px}
+.msg.me{align-self:flex-end;background:linear-gradient(90deg,#dff7ee,#bff0d7);color:#022a1f}
+.msg.them{align-self:flex-start;background:rgba(255,255,255,0.03)}
+.timestamp{font-size:12px;color:var(--muted);margin-top:6px}
+.toast{position:fixed;right:18px;bottom:18px;min-width:260px;padding:12px;border-radius:10px;box-shadow:0 8px 30px rgba(2,6,23,0.6);z-index:9999}
+.toast.success{background:#e6ffef;color:#064e3b;border-left:6px solid var(--success)}
+.toast.error{background:#fff0f0;color:#7f1d1d;border-left:6px solid var(--danger)}
+.badge{background:var(--danger);color:#fff;padding:4px 8px;border-radius:999px;font-weight:800;font-size:12px}
+.edit-block{background:var(--edit-blue);color:var(--white);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.06)}
+@media(max-width:980px){ .container{flex-direction:column}.sidebar{width:100%} }
+.small-muted{font-size:12px;color:var(--muted)}
+.icon-btn{background:transparent;border:none;padding:8px;border-radius:8px;cursor:pointer}
 
-    h1 {
-        margin-top: 20px;
-        font-size: 2.2em;
-        text-shadow: 2px 2px 4px #000;
-    }
-
-    #logoPreview {
-        margin: 10px auto;
-        width: 120px;
-        height: 120px;
-        object-fit: contain;
-        background: white;
-        border-radius: 10px;
-        border: 2px solid #fff;
-        display: block;
-    }
-
-    .form-container {
-        max-width: 700px;
-        margin: 30px auto;
-        background-color: rgba(255, 255, 255, 0.1);
-        padding: 20px;
-        border-radius: 10px;
-    }
-
-    label {
-        display: block;
-        margin-top: 10px;
-        font-weight: bold;
-    }
-
-    input, select {
-        width: 100%;
-        padding: 10px;
-        margin-top: 5px;
-        border: none;
-        border-radius: 5px;
-        font-size: 1em;
-    }
-
-    button {
-        background: white;
-        color: #001f3f;
-        border: none;
-        border-radius: 5px;
-        padding: 10px 15px;
-        margin-top: 15px;
-        font-size: 1em;
-        cursor: pointer;
-        font-weight: bold;
-        transition: 0.3s;
-    }
-
-    button:hover {
-        background: #0d6efd;
-        color: white;
-    }
-
-    table {
-        width: 100%;
-        margin-top: 20px;
-        border-collapse: collapse;
-    }
-
-    th, td {
-        border: 1px solid #ccc;
-        padding: 10px;
-        color: white;
-    }
-
-    th {
-        background-color: rgba(255, 255, 255, 0.15);
-    }
-
-    .bottom-buttons {
-        margin: 30px 0;
-    }
-
-    @media print {
-        body {
-            background-color: #001f3f !important;
-            color: black !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-        }
-        th {
-            background-color: rgba(255,255,255,0.9) !important;
-            color: black !important;
-        }
-        td {
-            color: black !important;
-        }
-        img {
-            background: none !important;
-        }
-    }
+/* Confirmation modal */
+#confirmOverlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.45);z-index:10000}
+#confirmBox{background:rgba(2,6,23,0.9);padding:20px;border-radius:12px;width:min(560px,92%);border:1px solid rgba(255,255,255,0.06)}
+#confirmBox h4{margin:0 0 8px 0}
+#confirmBox p{margin:0 0 16px 0;color:var(--muted)}
+#confirmButtons{display:flex;gap:8px;justify-content:flex-end}
+.btn.confirm-danger{background:linear-gradient(90deg,#ef4444,#d43b3b)}
+.btn.confirm-cancel{background:transparent;border:1px solid rgba(255,255,255,0.08)}
 </style>
 </head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <div class="logo" id="logoBox" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2L20 6v7a6 6 0 0 1-12 0V6l4-4z" fill="#fff"/></svg></div>
+      <div class="title">
+        <h1 id="platformName">FarmConnect</h1>
+        <p id="platformCaption" class="muted">Professional farmers marketplace — direct to buyers</p>
+      </div>
+    </div>
 
+    <div class="top-actions">
+      <button id="openLogin" class="btn small">Login</button>
+      <button id="openSignup" class="btn secondary small">Sign Up</button>
+
+      <!-- USER sidebar toggle -->
+      <button id="userHamburger" class="hamburger" title="Toggle menu" style="display:none">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <rect y="5" width="20" height="2" rx="1" fill="#fff"></rect>
+          <rect y="11" width="20" height="2" rx="1" fill="#fff"></rect>
+          <rect y="17" width="20" height="2" rx="1" fill="#fff"></rect>
+        </svg>
+      </button>
+
+      <button id="logoutButton" class="btn small" style="display:none;background:#dc3545">Logout</button>
+
+      <!-- ADMIN sidebar toggle -->
+      <button id="adminHamburger" class="hamburger" title="Toggle admin console" style="display:none">
+        <svg viewBox="0 0 24 24" width="20" height="20"><rect y="5" width="20" height="2" rx="1" fill="#fff"></rect><rect y="11" width="20" height="2" rx="1" fill="#fff"></rect><rect y="17" width="20" height="2" rx="1" fill="#fff"></rect></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <aside id="sidebar" class="sidebar hidden" aria-hidden="true">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;gap:8px;align-items:center">
+          <svg width="36" height="36" viewBox="0 0 24 24"><path d="M12 2L20 6v7a8 8 0 0 1-16 0V6l8-4z" fill="#fff"/></svg>
+          <div>
+            <strong id="sideTitle">Platform</strong>
+            <div class="muted" id="sideSub">—</div>
+          </div>
+        </div>
+        <button id="closeSidebar" class="btn secondary small">Close</button>
+      </div>
+      <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03)"/>
+      <div id="navArea" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
+      <div id="refSidebar" style="margin-top:12px"></div>
+    </aside>
+
+    <main class="content">
+      <!-- Login -->
+      <section id="viewLogin" class="card" style="display:none">
+        <h3>Login</h3>
+        <label>Username or Email</label><input id="loginInput" placeholder="username or email"/>
+        <label>Password</label><input id="loginPass" type="password" placeholder="password"/>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="btnLogin" class="btn">Login</button>
+          <button id="btnToSignup" class="btn secondary">Sign Up</button>
+        </div>
+        <p WELCOME TO Farm Connect</p>
+      </section>
+
+      <!-- Sign up -->
+      <section id="viewSignup" class="card" style="display:none">
+        <h3>Sign Up</h3>
+        <label>Username</label><input id="regUser" placeholder="username"/>
+        <label>Full names</label><input id="regNames" placeholder="full names"/>
+        <label>Email</label><input id="regEmail" placeholder="email"/>
+        <label>Phone</label><input id="regPhone" placeholder="phone"/>
+        <label>County</label><input id="regCounty" placeholder="county"/>
+        <label>Role</label><select id="regRole"><option>Farmer</option><option>Buyer</option></select>
+        <label>Password</label><input id="regPw1" type="password" placeholder="password"/>
+        <label>Confirm password</label><input id="regPw2" type="password" placeholder="confirm"/>
+        <label>4-digit PIN (not 1234 or repeating)</label><input id="regPin" placeholder="e.g., 4821"/>
+        <label>Referral code (optional)</label><input id="regReferral" placeholder="Referral code (optional)"/>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="btnRegister" class="btn">Create Account</button>
+          <button id="btnToLogin" class="btn secondary">Back to Login</button>
+        </div>
+      </section>
+
+      <!-- Home / product listing (public) -->
+      <section id="viewHome" class="card" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3>Product Listings</h3>
+          <div class="muted">Products publicly visible. Buyer actions require login. Listings require admin approval.</div>
+        </div>
+        <div id="productGrid" class="product-grid" style="margin-top:12px"></div>
+      </section>
+
+      <!-- Post product (Farmer) -->
+      <section id="viewPost" class="card" style="display:none">
+        <h3>Post Product</h3>
+        <label>Product image</label><input id="prodImage" type="file" accept="image/*"/>
+        <label>Category</label><input id="prodCategory" placeholder="Category"/>
+        <label>Product name</label><input id="prodName" placeholder="Name"/>
+        <label>Location</label><input id="prodLocation" placeholder="Location"/>
+        <label>Quantity</label><input id="prodQuantity" placeholder="Quantity"/>
+        <label>Price (KSh)</label><input id="prodPrice" type="number" placeholder="Amount in KSh"/>
+        <div style="margin-top:12px"><button id="btnPost" class="btn">Submit for Approval</button></div>
+        <p class="form-note">Your listing will be reviewed by an administrator.</p>
+      </section>
+
+      <!-- Chat -->
+      <section id="viewChat" class="card" style="display:none">
+        <h3>Inbox & Chat</h3>
+        <div class="chat-wrap">
+          <div class="contacts">
+            <label>Contacts</label>
+            <input id="contactSearch" placeholder="Search contacts" style="margin-top:8px"/>
+            <div id="contactsArea" style="margin-top:8px"></div>
+          </div>
+          <div class="chatbox">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong id="chatWith">Select contact</strong><div id="chatWithInfo" class="muted"></div></div>
+            </div>
+            <div id="messages" class="messages"></div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <input id="msgInput" placeholder="Type a message..." style="flex:1"/>
+              <button id="btnSendMsg" class="btn">Send</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Profile -->
+      <section id="viewProfile" class="card" style="display:none">
+        <h3>Profile</h3>
+        <div style="display:flex;gap:12px">
+          <div style="width:160px">
+            <img id="myAvatar" style="width:120px;height:120px;border-radius:12px;object-fit:cover;border:1px solid var(--glass-border)" src=""/>
+            <input id="avatarFile" type="file" accept="image/*" style="margin-top:8px"/>
+            <div style="margin-top:8px"><button id="btnUploadAvatar" class="btn small">Upload Photo</button></div>
+          </div>
+          <div style="flex:1">
+            <label>Username</label><input id="profileUser" disabled/>
+            <label>Full names</label><input id="profileNames"/>
+            <label>Email</label><input id="profileEmail"/>
+            <label>Phone</label><input id="profilePhone"/>
+            <label>County</label><input id="profileCounty"/>
+            <label>New password</label><input id="profileNewPw" type="password"/>
+            <div style="margin-top:12px"><button id="btnSaveProfile" class="btn">Save Profile</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Suggestions -->
+      <section id="viewSuggestions" class="card" style="display:none">
+        <h3>Report a user / Suggestions</h3>
+        <label>Target (username or email)</label><input id="reportTarget" placeholder="username or email"/>
+        <label>Reason / Details</label><textarea id="reportReason" placeholder="Explain the issue"></textarea>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button id="btnSubmitReport" class="btn">Submit Report</button>
+          <button id="btnViewMyReports" class="btn secondary">My Reports</button>
+        </div>
+        <div id="myReportsArea" style="margin-top:12px"></div>
+      </section>
+
+      <!-- Referral -->
+      <section id="viewReferral" class="card" style="display:none">
+        <h3>Referral Program</h3>
+        <div class="muted">Share your referral code. 3 unique signups using it = 1 day free access.</div>
+        <div style="margin-top:12px">
+          <label>Your referral code</label>
+          <input id="myReferralCode" disabled/>
+          <div style="margin-top:8px"><button id="btnCopyReferral" class="btn small">Copy Code</button><span id="refStatus" class="muted" style="margin-left:12px"></span></div>
+          <div style="margin-top:12px"><strong>Referrals</strong><div id="refList" style="margin-top:8px"></div></div>
+        </div>
+      </section>
+
+      <!-- Admin console -->
+      <section id="adminConsole" class="card" style="display:none">
+        <h3>Administrator Console</h3>
+        <div class="edit-block" style="margin-top:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:900">Administration</div>
+            <div class="muted">All actions are recorded locally</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px">
+
+            <div>
+              <div style="font-weight:800;margin-bottom:8px">Create User / Admin</div>
+              <input id="admNewUser" placeholder="username"/>
+              <input id="admNewNames" placeholder="full names" style="margin-top:8px"/>
+              <input id="admNewEmail" placeholder="email" style="margin-top:8px"/>
+              <select id="admNewRole" style="margin-top:8px"><option>Farmer</option><option>Buyer</option><option>Admin</option></select>
+              <div style="margin-top:8px"><button id="admAddUser" class="btn small">Create & Send Password</button></div>
+              <p class="form-note" style="margin-top:8px">Generated password will be sent to the user's inbox.</p>
+            </div>
+
+            <div>
+              <div style="font-weight:800;margin-bottom:8px">Pending Approvals</div>
+              <div id="admPendingList" style="max-height:220px;overflow:auto;padding:6px;border-radius:8px;border:1px solid var(--glass-border)"></div>
+            </div>
+
+            <div>
+              <div style="font-weight:800;margin-bottom:8px">Reports & Suggestions</div>
+              <div id="admReportsPreview" style="max-height:220px;overflow:auto;padding:6px;border-radius:8px;border:1px solid var(--glass-border)"></div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px">
+            <div style="font-weight:800">Broadcast Message</div>
+            <input id="admBroadcastSub" placeholder="Subject" style="margin-top:8px"/>
+            <textarea id="admBroadcastBody" placeholder="Message" style="margin-top:8px"></textarea>
+            <div style="margin-top:8px;display:flex;gap:8px"><button id="admSendBroadcast" class="btn">Send</button><button id="admPreviewBroadcast" class="btn secondary">Preview</button></div>
+          </div>
+
+          <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <div style="font-weight:800">Platform Contact</div>
+              <input id="platformContact" placeholder="Contact phone / email / address" style="margin-top:8px"/>
+              <div style="margin-top:8px"><button id="btnSaveContact" class="btn small">Save Contact</button></div>
+            </div>
+            <div>
+              <div style="font-weight:800">Terms & Conditions</div>
+              <textarea id="platformTnC" placeholder="Terms and conditions" style="height:120px;margin-top:8px"></textarea>
+              <div style="margin-top:8px"><button id="btnSaveTnC" class="btn small">Save Terms</button></div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <div style="flex:1">
+              <div style="font-weight:800">Payments (KSh 20/day)</div>
+              <input id="paystackPublicKey" placeholder="Paystack public key (pk_test_xxx)" style="margin-top:8px"/>
+              <div style="display:flex;gap:8px;margin-top:8px"><button id="btnEnablePayments" class="btn small">Enable</button><button id="btnDisablePayments" class="btn small secondary">Disable</button></div>
+              <div class="muted" style="margin-top:8px">Status: <span id="payStatus">Disabled</span></div>
+            </div>
+
+            <div style="flex:1">
+              <div style="font-weight:800">User Management</div>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <input id="manageUsername" placeholder="username or email" />
+                <button id="banUser" class="btn small secondary">Ban</button>
+                <button id="unbanUser" class="btn small secondary">Unban</button>
+              </div>
+              <div style="margin-top:8px;display:flex;gap:8px">
+                <button id="generatePasswordForUser" class="btn small">Generate Password</button>
+                <button id="admAddAdminBtn" class="btn small secondary">Quick Add Admin</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <button id="admShowAllUsers" class="btn secondary small">View Users</button>
+            <button id="admShowAllProducts" class="btn secondary small">View Products</button>
+            <button id="admPrintUsers" class="btn small">Print Users</button>
+            <button id="showTrafficBtn" class="btn small">Show Traffic</button>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <label style="font-weight:800;margin-right:8px">Referral Program</label>
+            <button id="btnEnableReferral" class="btn small">Enable</button>
+            <button id="btnDisableReferral" class="btn small secondary">Disable</button>
+            <div class="muted" style="margin-left:auto">Status: <span id="refStatusAdmin">Disabled</span></div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Traffic -->
+      <section id="trafficSection" class="card" style="display:none">
+        <h3>Traffic Analytics</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <label style="margin:0">Range</label>
+          <select
 <body>
 
 <h1><i class="fa-solid fa-calendar-days"></i>Personal Timetable Editor</h1>
