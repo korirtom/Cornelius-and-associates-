@@ -2,92 +2,324 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>cornel lab Pro v5 IDE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Timetable Editor</title>
 
-<!-- Icons -->
-<link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/devicon@2.15.1/devicon.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<!-- Styles -->
-<link rel="stylesheet" href="style.css">
+<style>
+    body {
+        background-color: #001f3f;
+        color: white;
+        font-family: "Poppins", sans-serif;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
 
-<!-- Monaco Editor -->
-<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    h1 {
+        margin-top: 20px;
+        font-size: 2.2em;
+        text-shadow: 2px 2px 4px #000;
+    }
+
+    #logoPreview {
+        margin: 10px auto;
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+        background: white;
+        border-radius: 10px;
+        border: 2px solid #fff;
+        display: block;
+    }
+
+    .form-container {
+        max-width: 700px;
+        margin: 30px auto;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    label {
+        display: block;
+        margin-top: 10px;
+        font-weight: bold;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: none;
+        border-radius: 5px;
+        font-size: 1em;
+    }
+
+    button {
+        background: white;
+        color: #001f3f;
+        border: none;
+        border-radius: 5px;
+        padding: 10px 15px;
+        margin-top: 15px;
+        font-size: 1em;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    button:hover {
+        background: #0d6efd;
+        color: white;
+    }
+
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        color: white;
+    }
+
+    th {
+        background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .bottom-buttons {
+        margin: 30px 0;
+    }
+
+    @media print {
+        body {
+            background-color: #001f3f !important;
+            color: black !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        th {
+            background-color: rgba(255,255,255,0.9) !important;
+            color: black !important;
+        }
+        td {
+            color: black !important;
+        }
+        img {
+            background: none !important;
+        }
+    }
+</style>
 </head>
+
 <body>
-<div class="app">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="logo">
-      <i class="bx bx-code-alt"></i>
-      <h2>cornel Lab Pro</h2>
-    </div>
-    <div class="explorer">
-      <div id="fileTree" class="file-tree"></div>
-    </div>
-  </aside>
 
-  <!-- Main editor area -->
-  <main class="editor-area">
-    <!-- Top bar -->
-    <div class="top-bar">
-      <div class="file-actions">
-        <button id="newFolder" title="New Folder"><i class="bx bx-folder-plus"></i></button>
-        <button id="newFile" title="New File"><i class="bx bx-file"></i></button>
-        <button id="renameItem" title="Rename"><i class="bx bx-rename"></i></button>
-        <button id="deleteItem" title="Delete"><i class="bx bx-trash"></i></button>
-        <button id="importBtn" title="Import Files"><i class="bx bx-import"></i></button>
-        <input type="file" id="importInput" multiple style="display:none;">
-      </div>
-      <div class="editor-actions">
-        <button id="runBtn" title="Run"><i class="bx bx-play"></i></button>
-        <button id="previewBtn" title="Preview"><i class="bx bx-mobile-alt"></i></button>
-        <button id="keyboardToggle" title="Keyboard"><i class="bx bx-keyboard"></i></button>
-        <button id="exportBtn" title="Export Project"><i class="bx bx-download"></i></button>
-      </div>
-      <div class="language-selector">
-        <select id="languageSelect"></select>
-      </div>
-    </div>
+<h1><i class="fa-solid fa-calendar-days"></i>Personal Timetable Editor</h1>
 
-    <!-- Language label above editor -->
-    <div id="languageLabel" class="language-label">
-      <i id="languageIcon" class="bx bx-code"></i>
-      <span id="languageName">Plaintext</span>
-    </div>
+<input type="file" id="logoInput" accept="image/*">
+<img id="logoPreview" src="" alt="Logo Preview">
 
-    <!-- Tab bar -->
-    <div id="tabBar" class="tab-bar"></div>
+<div class="form-container">
+    <label><i class="fa-solid fa-code"></i> Course Code</label>
+    <input type="text" id="courseCode" placeholder="e.g., CSC101">
 
-    <!-- Editor -->
-    <div id="editorContainer" class="editor-container" tabindex="-1"></div>
+    <label><i class="fa-solid fa-book"></i> Course Title</label>
+    <input type="text" id="courseTitle" placeholder="e.g., Introduction to Computing">
 
-    <!-- Phone Preview -->
-    <div id="previewPhone" class="preview-phone">
-      <div class="phone-header">
-        <button id="refreshPreview" title="Refresh Preview"><i class="bx bx-refresh"></i></button>
-      </div>
-      <iframe id="previewFrame"></iframe>
-    </div>
+    <label><i class="fa-solid fa-calendar-day"></i> Day</label>
+    <select id="day">
+        <option value="">Select Day</option>
+        <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+        <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+    </select>
 
-    <!-- Virtual Keyboard -->
-    <div id="keypad" class="keypad"></div>
+    <label><i class="fa-solid fa-clock"></i> Time</label>
+    <input type="time" id="time">
 
-    <!-- Status bar -->
-    <footer class="status-bar">
-      <span id="statusLanguage">Plaintext</span>
-      <span id="statusPosition">Ln 1, Col 1</span>
-      <span id="statusFile">Untitled</span>
-    </footer>
-  </main>
+    <button onclick="addCourse()"><i class="fa-solid fa-plus"></i> Add Course</button>
+
+    <table id="timetable">
+        <thead>
+            <tr>
+                <th>Course Code</th>
+                <th>Course Title</th>
+                <th>Day</th>
+                <th>Time</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 </div>
 
-<!-- JS Libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<div class="bottom-buttons">
+    <button onclick="previewTable()"><i class="fa-solid fa-eye"></i> Preview</button>
+    <button onclick="window.print()"><i class="fa-solid fa-print"></i> Print Directly</button>
+</div>
 
-<!-- Main JS -->
-<script src="script.js"></script>
+<script>
+const logoInput = document.getElementById('logoInput');
+const logoPreview = document.getElementById('logoPreview');
+const tableBody = document.querySelector('#timetable tbody');
+
+// Restore data from local storage on load
+window.onload = function() {
+    const savedLogo = localStorage.getItem('timetableLogo');
+    const savedCourses = JSON.parse(localStorage.getItem('timetableData')) || [];
+
+    if (savedLogo) logoPreview.src = savedLogo;
+
+    savedCourses.forEach(course => {
+        const row = tableBody.insertRow();
+        row.innerHTML = `
+            <td>${course.code}</td>
+            <td>${course.title}</td>
+            <td>${course.day}</td>
+            <td>${course.time}</td>
+            <td><button onclick="deleteRow(this)" style="background:#dc3545;color:white;"><i class='fa-solid fa-trash'></i></button></td>
+        `;
+    });
+};
+
+// Handle logo upload and save
+logoInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            logoPreview.src = ev.target.result;
+            localStorage.setItem('timetableLogo', ev.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Add a new course
+function addCourse() {
+    const code = document.getElementById('courseCode').value.trim();
+    const title = document.getElementById('courseTitle').value.trim();
+    const day = document.getElementById('day').value;
+    const time = document.getElementById('time').value;
+
+    if (!code || !title || !day || !time) return alert("Please fill all fields.");
+
+    const row = tableBody.insertRow();
+    row.innerHTML = `
+        <td>${code}</td>
+        <td>${title}</td>
+        <td>${day}</td>
+        <td>${time}</td>
+        <td><button onclick="deleteRow(this)" style="background:#dc3545;color:white;"><i class='fa-solid fa-trash'></i></button></td>
+    `;
+
+    saveTableData(); // Save after adding
+
+    // Reset fields
+    document.getElementById('courseCode').value = "";
+    document.getElementById('courseTitle').value = "";
+    document.getElementById('day').value = "";
+    document.getElementById('time').value = "";
+}
+
+// Delete a row and update local storage
+function deleteRow(button) {
+    button.closest('tr').remove();
+    saveTableData();
+}
+
+// Save all current data to local storage
+function saveTableData() {
+    const rows = Array.from(tableBody.querySelectorAll('tr')).map(r => ({
+        code: r.cells[0].textContent,
+        title: r.cells[1].textContent,
+        day: r.cells[2].textContent,
+        time: r.cells[3].textContent
+    }));
+    localStorage.setItem('timetableData', JSON.stringify(rows));
+}
+
+// Generate preview window
+function previewTable() {
+    const tableClone = document.querySelector('#timetable').cloneNode(true);
+    tableClone.querySelectorAll('th:last-child, td:last-child').forEach(el => el.remove());
+    const logoSrc = logoPreview.src || '';
+
+    const previewWin = window.open('', '_blank');
+    previewWin.document.write(`
+        <html>
+        <head>
+            <title>Timetable Preview</title>
+            <style>
+                body {
+                    background-color: #001f3f;
+                    color: black;
+                    font-family: Poppins, sans-serif;
+                    text-align: center;
+                    -webkit-print-color-adjust: exact;
+                    print-color-adjust: exact;
+                    margin: 0;
+                }
+                h2 {
+                    color: black;
+                }
+                table {
+                    width: 80%;
+                    margin: 20px auto;
+                    border-collapse: collapse;
+                    box-shadow: 0 0 10px rgba(255,255,255,0.2);
+                    background: white;
+                    color: black;
+                }
+                th, td {
+                    border: 1px solid #999;
+                    padding: 10px;
+                }
+                th {
+                    background-color: #f0f0f0;
+                }
+                img {
+                    width: 120px;
+                    border-radius: 10px;
+                    border: 2px solid black;
+                    margin-top: 15px;
+                    background: none;
+                    object-fit: contain;
+                }
+                #printBtn {
+                    margin: 20px;
+                    background: white;
+                    color: #001f3f;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    font-weight: bold;
+                }
+                #printBtn:hover {
+                    background: #0d6efd;
+                    color: white;
+                }
+                @media print {
+                    #printBtn { display: none !important; }
+                }
+            </style>
+        </head>
+        <body>
+            <img src="${logoSrc}" alt="Logo">
+            <h2>Personal Timetable</h2>
+            ${tableClone.outerHTML}
+            <button id="printBtn" onclick="window.print()"><i class='fa-solid fa-print'></i> Print Timetable</button>
+        </body>
+        </html>
+    `);
+    previewWin.document.close();
+}
+</script>
+
 </body>
 </html>
